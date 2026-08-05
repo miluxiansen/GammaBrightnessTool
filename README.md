@@ -43,6 +43,14 @@ This repository contains the **full source history** of the project across three
 
 **Latest version (3.0.0):** see [`3.0.0/README.md`](3.0.0/README.md) for full features, usage, and build instructions.
 
+## 🖱️ Show the tray icon
+
+If the app icon is not visible in the system tray:
+
+1. Open **Settings** → **Personalization** → **Taskbar**
+2. Click **Other system tray icons**
+3. Turn **on** the toggle for **GammaBrightnessTool**
+
 ## 🛠️ Build
 
 Each version folder is self-contained and builds independently:
@@ -103,6 +111,14 @@ MIT License © 2026 GammaBrightnessTool Contributors. See `3.0.0/LICENSE`.
 ## 🚀 快速开始
 
 **最新版（3.0.0）：** 完整功能、使用方法与编译说明见 [`3.0.0/README.md`](3.0.0/README.md)。
+
+## 🖱️ 显示托盘图标
+
+如果任务栏托盘里看不到软件图标：
+
+1. 打开 **设置** → **个性化** → **任务栏**
+2. 点击 **其他系统托盘图标**
+3. 打开 **GammaBrightnessTool** 开关
 
 ## 🛠️ 编译
 
