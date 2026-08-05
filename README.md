@@ -51,18 +51,6 @@ If the app icon is not visible in the system tray:
 2. Click **Other system tray icons**
 3. Turn **on** the toggle for **GammaBrightnessTool**
 
-## 🛠️ Build
-
-Each version folder is self-contained and builds independently:
-
-```bash
-# Requires .NET 8 SDK
-cd 3.0.0
-dotnet publish -c Release -o publish --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true
-```
-
-The installer is built with Inno Setup 6 (`Setup.iss` lives in the original project folder `3.0.0/Setup.iss`).
-
 ## 📜 License
 
 MIT License © 2026 GammaBrightnessTool Contributors. See `3.0.0/LICENSE`.
@@ -119,18 +107,6 @@ MIT License © 2026 GammaBrightnessTool Contributors. See `3.0.0/LICENSE`.
 1. 打开 **设置** → **个性化** → **任务栏**
 2. 点击 **其他系统托盘图标**
 3. 打开 **GammaBrightnessTool** 开关
-
-## 🛠️ 编译
-
-每个版本目录独立自包含，可单独编译：
-
-```bash
-# 需要 .NET 8 SDK
-cd 3.0.0
-dotnet publish -c Release -o publish --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true
-```
-
-安装包使用 Inno Setup 6 编译（`Setup.iss` 位于原项目目录 `3.0.0/Setup.iss`）。
 
 ## 📜 开源协议
 
