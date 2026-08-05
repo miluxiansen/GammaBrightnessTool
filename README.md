@@ -13,8 +13,8 @@ This repository contains the **full source history** of the project across three
 | Version | Release Notes | Source | Portable |
 |---------|---------------|--------|----------|
 | **3.0.0** (Latest) | DPI overhaul + multi-size icon + cleanup | [`3.0.0/`](3.0.0/README.md) | `3.0.0/GammaBrightnessTool_绿色版_v3.0.0_20260805.zip` |
-| **2.0.0** | Left-click popup + screen-off button + gamma floor remap | [`2.0.0/`](2.0.0/README.md) | `2.0.0/GammaBrightnessTool_v2.0.0_Green.zip` |
-| **1.0.0** | Initial release: wheel adjustment + OSD | [`1.0.0/`](1.0.0/README.md) | `1.0.0/GammaBrightnessTool_v1.0.0_SelfContained.zip` |
+| **2.0.0** | Left-click popup + screen-off button + gamma floor remap | [`2.0.0/`](2.0.0/README.md) | — (source only, historical) |
+| **1.0.0** | Initial release: wheel adjustment + OSD | [`1.0.0/`](1.0.0/README.md) | — (source only, historical) |
 
 ### ✨ Feature evolution
 
@@ -69,8 +69,8 @@ MIT License © 2026 GammaBrightnessTool Contributors. See `3.0.0/LICENSE`.
 | 版本 | 发布说明 | 源码 | 绿色版 |
 |------|---------|------|--------|
 | **3.0.0**（最新） | DPI 全面修复 + 多尺寸图标 + 代码清理 | [`3.0.0/`](3.0.0/README.md) | `3.0.0/GammaBrightnessTool_绿色版_v3.0.0_20260805.zip` |
-| **2.0.0** | 左键弹窗 + 息屏按钮 + Gamma 下限重映射 | [`2.0.0/`](2.0.0/README.md) | `2.0.0/GammaBrightnessTool_v2.0.0_Green.zip` |
-| **1.0.0** | 初版：滚轮调节 + OSD | [`1.0.0/`](1.0.0/README.md) | `1.0.0/GammaBrightnessTool_v1.0.0_SelfContained.zip` |
+| **2.0.0** | 左键弹窗 + 息屏按钮 + Gamma 下限重映射 | [`2.0.0/`](2.0.0/README.md) | —（仅源码，历史存档） |
+| **1.0.0** | 初版：滚轮调节 + OSD | [`1.0.0/`](1.0.0/README.md) | —（仅源码，历史存档） |
 
 ### ✨ 功能演进
 

@@ -2,6 +2,8 @@
 
 > **English** | [中文](#中文版)
 
+> ⚠️ **Historical archive — source only.** This version has known bugs (DPI handling issues). It is kept for reference only; **no binary release is provided**. Use **v3.0.0** instead: see [`../README.md`](../README.md).
+
 Second major version of the Gamma Brightness Tool — a Windows screen brightness adjustment tool built on .NET 8 / WinForms, adjusting monitor brightness via Gamma Ramp (`SetDeviceGammaRamp`).
 
 ---
@@ -53,6 +55,8 @@ MIT License © 2026 GammaBrightnessTool Contributors
 # Gamma Brightness Tool 2.0.0
 
 > [English](#gamma-brightness-tool---200) | **中文**
+
+> ⚠️ **历史存档——仅源码。** 本版本存在已知 bug（DPI 处理问题），仅供存档参考，**不提供二进制发布**。请使用 **v3.0.0**：见 [`../README.md`](../README.md)。
 
 Gamma Brightness Tool 的第二代——基于 .NET 8 / WinForms 的 Windows 屏幕亮度调节工具，通过 Gamma Ramp（`SetDeviceGammaRamp`）调节显示器亮度。
 
