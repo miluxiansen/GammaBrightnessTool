@@ -4,6 +4,8 @@
 
 A Windows screen brightness adjustment tool built on .NET 8 / WinForms. It adjusts monitor brightness via Gamma Ramp (`SetDeviceGammaRamp`), lives in the system tray, and supports quick wheel-based adjustment.
 
+> 💡 **What it is**: a lightweight utility for Windows environments where **DDC/CI is unavailable** (e.g. desktop PCs, VGA/HDMI setups, monitors that don't expose DDC/CI). It lives in the **system tray** and supports **mouse wheel** brightness adjustment out of the box. No special hardware or drivers required.
+
 This repository contains the **full source history** of the project across three major versions. Each version folder is a complete, independently-buildable source snapshot.
 
 ---
@@ -61,6 +63,8 @@ MIT License © 2026 GammaBrightnessTool Contributors. See `3.0.0/LICENSE`.
 > [English](#gammabrightnesstool) | **中文**
 
 一个基于 .NET 8 / WinForms 的 Windows 屏幕亮度调节工具。通过 Gamma Ramp（`SetDeviceGammaRamp`）调节显示器亮度，常驻系统托盘，支持鼠标滚轮快捷调节。
+
+> 💡 **简介**：一款简易的小工具，专为**无法使用 DDC/CI 的 Windows 电脑环境**（如台式机、VGA/HDMI 连接、不暴露 DDC/CI 的显示器）提供亮度调节能力。常驻系统托盘，支持鼠标滚轮快捷调节。无需特殊硬件或驱动，即可获得简单直观的屏幕亮度控制。
 
 本仓库包含项目**三代完整源码历史**，每个版本目录都是完整、可独立编译的源码快照。
 
