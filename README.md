@@ -30,11 +30,8 @@ This repository contains the **full source history** of the project across three
 | Screen-off button + tooltip | — | ✅ | ✅ |
 | PerMonitorV2 DPI awareness | partial | partial | ✅ (manifest + full physical chain) |
 | Real-time popup re-anchor on DPI switch | — | — | ✅ (200ms polling) |
-| Multi-size tray icon (16~256, 11 sizes) | — | — | ✅ |
 | Icon self-healing (Explorer crash) | — | — | ✅ |
 | Settings persistence (portable/AppData) | ✅ | ✅ | ✅ |
-| Localization (Simplified/Traditional Chinese, English) | ✅ | ✅ | ✅ |
-| Installer (Inno Setup) | ✅ | ✅ | ✅ |
 
 ## 📸 Screenshots
 
@@ -94,11 +91,8 @@ MIT License © 2026 GammaBrightnessTool Contributors. See `3.0.0/LICENSE`.
 | 息屏按钮 + 悬浮提示 | — | ✅ | ✅ |
 | PerMonitorV2 高 DPI 感知 | 部分 | 部分 | ✅（manifest + 全物理坐标链） |
 | DPI 切换实时重锚定 | — | — | ✅（200ms 轮询） |
-| 多尺寸托盘图标（16~256 共 11 档） | — | — | ✅ |
 | 图标自愈（资源管理器崩溃） | — | — | ✅ |
 | 设置持久化（便携/AppData） | ✅ | ✅ | ✅ |
-| 多语言（简/繁/英） | ✅ | ✅ | ✅ |
-| 安装包（Inno Setup） | ✅ | ✅ | ✅ |
 
 ## 📸 界面截图
 
