@@ -22,6 +22,12 @@ public sealed class BrightnessPopup : Form
     private readonly int _baseWidth = 140;   // Slightly wider than OSD
     private readonly int _baseHeight = 60;   // Label + slider + power-off button, compact
     private int _lastLayoutDpi;
+    // Tracks the physical size the rounded-corner Region was last built for.
+    // Do NOT compare against WinForms Width/Height here: after WM_DPICHANGED
+    // the framework auto-scales the window (and the Region) before our 200 ms
+    // poll runs, so Width/Height already equal the new values and the rebuild
+    // guard would be skipped, leaving the framework-scaled (misaligned) region.
+    private Size _lastRegionSize;
 
     public event EventHandler<float>? OnBrightnessChanged;
 
@@ -46,6 +52,7 @@ public sealed class BrightnessPopup : Form
         TopMost = true;
 
         ApplyRoundedCorners(8, Width, Height);
+        _lastRegionSize = new Size(Width, Height);
 
         // Layout parameters mirror the wheel OSD (BrightnessOverlay) which the
         // user confirmed looks right: small font (7pt base), generous label
@@ -499,10 +506,16 @@ public sealed class BrightnessPopup : Form
         // physical size or the rounded corners end up misaligned (only the
         // top-left keeps its radius, the other corners become square).
         // Skip when the size is unchanged (this runs every 200 ms while the
-        // popup is open) to avoid churning GDI regions.
-        if (physW != Width || physH != Height)
+        // popup is open) to avoid churning GDI regions. NOTE: track the size
+        // ourselves (_lastRegionSize) instead of comparing Width/Height —
+        // WinForms auto-scales the window AND the Region on WM_DPICHANGED
+        // before the poll runs, so Width/Height already match physW/physH and
+        // a Width/Height comparison would wrongly skip the rebuild, leaving
+        // the framework-scaled (misaligned) rounded corners.
+        if (physW != _lastRegionSize.Width || physH != _lastRegionSize.Height)
         {
             ApplyRoundedCorners(8, physW, physH);
+            _lastRegionSize = new Size(physW, physH);
         }
 
         return new Size(physW, physH);

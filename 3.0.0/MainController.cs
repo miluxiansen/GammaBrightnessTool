@@ -252,9 +252,29 @@ public sealed class MainController : IDisposable
         // 2. Release mutex so uninstaller can run
         Program.ReleaseMutex();
 
-        // 3. Build uninstall batch script (green version: no install dir)
         var exePath = Application.ExecutablePath;
         var appName = Path.GetFileName(exePath);
+        var appDir = Path.GetDirectoryName(exePath) ?? "";
+
+        // 3a. Installed version: hand off to the Inno Setup uninstaller (unins000.exe).
+        // It removes the app directory (including itself), desktop/start-menu shortcuts
+        // and registry values recorded at install time — which a self-cleanup batch cannot do.
+        var uninsExe = Path.Combine(appDir, "unins000.exe");
+        if (File.Exists(uninsExe))
+        {
+            var uninsPsi = new System.Diagnostics.ProcessStartInfo
+            {
+                FileName = uninsExe,
+                Arguments = "/VERYSILENT /SUPPRESSMSGBOXES /NORESTART",
+                UseShellExecute = false,
+                CreateNoWindow = true
+            };
+            System.Diagnostics.Process.Start(uninsPsi);
+            Application.Exit();
+            return;
+        }
+
+        // 3b. Green version: self-cleanup via batch script
         var batchPath = Path.Combine(Path.GetTempPath(), $"uninstall_{appName}.bat");
 
         var batchContent = $@"
@@ -264,6 +284,9 @@ timeout /t 2 /nobreak >nul
 reg delete ""HKCU\Software\Classes\Local Settings\Software\Microsoft\Windows\CurrentVersion\TrayNotify"" /v IconStreams /f 2>nul
 reg delete ""HKCU\Software\Classes\Local Settings\Software\Microsoft\Windows\CurrentVersion\TrayNotify"" /v PastIconsStream /f 2>nul
 rmdir /s /q ""{Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "GammaBrightnessTool")}"" 2>nul
+del /f /q ""{Path.Combine(appDir, "settings.json")}"" 2>nul
+del /f /q ""{Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory), "Gamma Brightness Tool.lnk")}"" 2>nul
+del /f /q ""{Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory), "GammaBrightnessTool.lnk")}"" 2>nul
 del /f /q ""{exePath}"" 2>nul
 del /f /q ""{batchPath}"" 2>nul
 ";
