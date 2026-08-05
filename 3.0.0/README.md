@@ -1,4 +1,4 @@
-# Gamma Brightness Tool - 3.0.0
+﻿# Gamma Brightness Tool - 3.0.0
 
 > **English** | [中文](#中文版--gamma-brightness-tool-300)
 
@@ -28,7 +28,7 @@ A Windows screen brightness adjustment tool built on .NET 8 / WinForms. It adjus
 Download `GammaBrightnessTool_Setup.exe` from the **Releases** page (Inno Setup installer, installs to D: drive, optional auto-start):
 
 ### Option 2: Portable (recommended)
-Download `GammaBrightnessTool_绿色版_v3.0.0_20260805.zip`:
+Download `GammaBrightnessTool-Portable-v3.0.0.zip`:
 1. Extract to any folder, double-click `GammaBrightnessTool.exe`
 2. Settings are saved to `settings.json` next to the exe
 3. No .NET runtime needed (self-contained)
@@ -126,7 +126,7 @@ MIT License © 2025 GammaBrightnessTool Contributors
 从 **Releases** 页面下载 `GammaBrightnessTool_Setup.exe`（Inno Setup 安装包，自动安装到 D 盘，可选开机自启）：
 
 ### 方式二：绿色版（推荐）
-下载 `GammaBrightnessTool_绿色版_v3.0.0_20260805.zip`：
+下载 `GammaBrightnessTool-Portable-v3.0.0.zip`：
 1. 解压到任意文件夹，双击 `GammaBrightnessTool.exe` 运行
 2. 设置自动保存在 exe 同目录的 `settings.json`
 3. 无需安装 .NET 运行时（已自包含）
