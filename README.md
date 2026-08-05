@@ -36,6 +36,12 @@ This repository contains the **full source history** of the project across three
 | Localization (Simplified/Traditional Chinese, English) | ✅ | ✅ | ✅ |
 | Installer (Inno Setup) | ✅ | ✅ | ✅ |
 
+## 📸 Screenshots
+
+| OSD overlay (wheel) | Left-click popup | Context menu (CN) | Context menu (EN) |
+|:---:|:---:|:---:|:---:|
+| ![Wheel OSD](screenshots/wheel-osd.png) | ![Left-click popup](screenshots/left-click-popup.png) | ![Context menu CN](screenshots/context-menu-zh.png) | ![Context menu EN](screenshots/context-menu-en.png) |
+
 ## 🚀 Quick Start
 
 **Latest version (3.0.0):** see [`3.0.0/README.md`](3.0.0/README.md) for full features, usage, and build instructions.
@@ -93,6 +99,12 @@ MIT License © 2026 GammaBrightnessTool Contributors. See `3.0.0/LICENSE`.
 | 设置持久化（便携/AppData） | ✅ | ✅ | ✅ |
 | 多语言（简/繁/英） | ✅ | ✅ | ✅ |
 | 安装包（Inno Setup） | ✅ | ✅ | ✅ |
+
+## 📸 界面截图
+
+| 滚轮浮窗（OSD） | 左键弹窗 | 右键菜单（中文） | 右键菜单（英文） |
+|:---:|:---:|:---:|:---:|
+| ![滚轮浮窗](screenshots/wheel-osd.png) | ![左键弹窗](screenshots/left-click-popup.png) | ![右键菜单中文](screenshots/context-menu-zh.png) | ![右键菜单英文](screenshots/context-menu-en.png) |
 
 ## 🚀 快速开始
 
