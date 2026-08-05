@@ -38,9 +38,9 @@ This repository contains the **full source history** of the project across three
 
 ## 📸 Screenshots
 
-| OSD overlay (wheel) | Left-click popup | Context menu (CN) | Context menu (EN) |
-|:---:|:---:|:---:|:---:|
-| ![Wheel OSD](screenshots/wheel-osd.png) | ![Left-click popup](screenshots/left-click-popup.png) | ![Context menu CN](screenshots/context-menu-zh.png) | ![Context menu EN](screenshots/context-menu-en.png) |
+| OSD overlay (wheel) | Left-click popup | Context menu |
+|:---:|:---:|:---:|
+| ![Wheel OSD](screenshots/wheel-osd.png) | ![Left-click popup](screenshots/left-click-popup.png) | ![Context menu](screenshots/context-menu-en.png) |
 
 ## 🚀 Quick Start
 
@@ -102,9 +102,9 @@ MIT License © 2026 GammaBrightnessTool Contributors. See `3.0.0/LICENSE`.
 
 ## 📸 界面截图
 
-| 滚轮浮窗（OSD） | 左键弹窗 | 右键菜单（中文） | 右键菜单（英文） |
-|:---:|:---:|:---:|:---:|
-| ![滚轮浮窗](screenshots/wheel-osd.png) | ![左键弹窗](screenshots/left-click-popup.png) | ![右键菜单中文](screenshots/context-menu-zh.png) | ![右键菜单英文](screenshots/context-menu-en.png) |
+| 滚轮浮窗（OSD） | 左键弹窗 | 右键菜单 |
+|:---:|:---:|:---:|
+| ![滚轮浮窗](screenshots/wheel-osd.png) | ![左键弹窗](screenshots/left-click-popup.png) | ![右键菜单](screenshots/context-menu-zh.png) |
 
 ## 🚀 快速开始
 
