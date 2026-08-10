@@ -1,0 +1,22 @@
+# Auto detect text files and perform LF normalization
+* text=auto
+
+# C# source files should always be LF in the repository
+*.cs text eol=lf
+*.csproj text eol=lf
+*.sln text eol=lf
+*.iss text eol=lf
+*.md text eol=lf
+*.txt text eol=lf
+*.json text eol=lf
+*.xml text eol=lf
+
+# Binary files
+*.ico binary
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.exe binary
+*.dll binary
+*.zip binary

@@ -16,7 +16,7 @@ A Windows screen brightness adjustment tool built on .NET 8 / WinForms. It adjus
 |---------|---------------|--------|
 | **3.2.0** (Latest) | Global hotkeys + settings window optimization + more settings options | [`3.2.0/`](3.2.0/README.md) |
 | **3.1.0** | Settings window + full dark theme + 9 languages | — |
-| **3.0.0** | DPI overhaul + multi-size icon + cleanup | — |
+| **3.0.0** | DPI overhaul + multi-size icon + cleanup | [`3.0.0/`](3.0.0/README.md) |
 
 ### ✨ Feature evolution
 
@@ -73,7 +73,7 @@ MIT License © 2026 GammaBrightnessTool Contributors. See `3.2.0/LICENSE`.
 |------|---------|------|
 | **3.2.0**（最新） | 全局快捷键 + 设置窗口的优化 + 更多设置选项 | [`3.2.0/`](3.2.0/README.md) |
 | **3.1.0** | 设置窗口 + 完整深色主题 + 9 语言 | — |
-| **3.0.0** | DPI 全面修复 + 多尺寸图标 + 代码清理 | — |
+| **3.0.0** | DPI 全面修复 + 多尺寸图标 + 代码清理 | [`3.0.0/`](3.0.0/README.md) |
 
 ### ✨ 功能演进
 
