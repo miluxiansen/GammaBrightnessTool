@@ -1,0 +1,40 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <UseWindowsForms>true</UseWindowsForms>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <ApplicationIcon>Resources\APP.ico</ApplicationIcon>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <!-- WFAC010: the WinForms analyzer incorrectly warns that manifest DPI
+         settings should be removed.  In fact the manifest declaration
+         (dpiAwareness=PerMonitorV2,system) is correct and has been
+         validated by the user — suppressing the false alarm here. -->
+    <NoWarn>$(NoWarn);WFAC010</NoWarn>
+    <Version>3.1.0</Version>
+    <AssemblyVersion>3.1.0.0</AssemblyVersion>
+    <FileVersion>3.1.0.0</FileVersion>
+    <PublishSingleFile>true</PublishSingleFile>
+    <SelfContained>false</SelfContained>
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="System.Text.Json" Version="8.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\APP.ico" />
+  </ItemGroup>
+
+  <!-- GitHub-Release 仅为发布用源码副本，不参与本目录编译 -->
+  <ItemGroup>
+    <Compile Remove="GitHub-Release\**" />
+    <EmbeddedResource Remove="GitHub-Release\**" />
+    <None Remove="GitHub-Release\**" />
+  </ItemGroup>
+
+</Project>

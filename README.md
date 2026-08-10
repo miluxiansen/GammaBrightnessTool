@@ -1,4 +1,4 @@
-﻿# GammaBrightnessTool
+# GammaBrightnessTool
 
 > **English** | [中文](#中文版--gammabrightnesstool)
 
@@ -6,47 +6,42 @@ A Windows screen brightness adjustment tool built on .NET 8 / WinForms. It adjus
 
 > 💡 **What it is**: a lightweight utility for Windows environments where **DDC/CI is unavailable** (e.g. desktop PCs, VGA/HDMI setups, monitors that don't expose DDC/CI). It lives in the **system tray** and supports **mouse wheel** brightness adjustment out of the box. No special hardware or drivers required.
 
-This repository contains the **full source history** of the project across four major versions. Each version folder is a complete, independently-buildable source snapshot.
+This repository contains the source history of the project. Each version folder is a complete, independently-buildable source snapshot.
 
 ---
 
 ## 📦 Version History
 
-| Version | Release Notes | Source | Portable |
-|---------|---------------|--------|----------|
-| **3.2.0** (Latest) | Global hotkeys + dark/light theme + 9 languages + settings overhaul | [`3.2.0/`](3.2.0/README.md) | — (attach to Releases) |
-| **3.0.0** | DPI overhaul + multi-size icon + cleanup | [`3.0.0/`](3.0.0/README.md) | `3.0.0/GammaBrightnessTool-Portable-v3.0.0.zip` |
-| **2.0.0** | Left-click popup + screen-off button + gamma floor remap | [`2.0.0/`](2.0.0/README.md) | — (source only, historical) |
-| **1.0.0** | Initial release: wheel adjustment + OSD | [`1.0.0/`](1.0.0/README.md) | — (source only, historical) |
+| Version | Release Notes | Source |
+|---------|---------------|--------|
+| **3.2.0** (Latest) | Global hotkeys + dark/light theme + 9 languages + settings overhaul | [`3.2.0/`](3.2.0/README.md) |
+| **3.1.0** | Settings window + full dark theme + 9 languages | [`3.1.0/`](3.1.0/README.md) |
+| **3.0.0** | DPI overhaul + multi-size icon + cleanup | [`3.0.0/`](3.0.0/README.md) |
 
 ### ✨ Feature evolution
 
-| Feature | 1.0.0 | 2.0.0 | 3.0.0 | 3.2.0 |
-|---------|:-----:|:-----:|:-----:|:-----:|
-| Tray icon + silent startup | ✔ | ✔ | ✔ | ✔ |
-| Mouse wheel brightness (icon hit-test) | ✔ | ✔ | ✔ (real-time geometry) | ✔ |
-| OSD brightness overlay | ✔ | ✔ | ✔ | ✔ |
-| Brightness range | 10%~100% | 0%~100% (floor remapped) | 0%~100% (floor remapped) | 0%~100% (9 step presets) |
-| Left-click popup slider | — | ✔ | ✔ | ✔ |
-| Screen-off button + tooltip | — | ✔ | ✔ | ✔ |
-| PerMonitorV2 DPI awareness | partial | partial | ✔ (manifest + full physical chain) | ✔ |
-| Real-time popup re-anchor on DPI switch | — | — | ✔ (200ms polling) | ✔ |
-| Icon self-healing (Explorer crash) | — | — | ✔ | ✔ |
-| Settings persistence (portable/AppData) | ✔ | ✔ | ✔ | ✔ |
-| Global hotkeys (brightness up/down/screen off) | — | — | — | ✔ |
-| Dark/light theme + 9 languages | — | — | partial (dark only) | ✔ |
-| Wheel master switch / step presets | — | — | — | ✔ |
-| Reset settings / hotkey enable toggles | — | — | — | ✔ |
+| Feature | 3.0.0 | 3.1.0 | 3.2.0 |
+|---------|:-----:|:-----:|:-----:|
+| Settings window (non-modal, navigation pages) | — | ✔ | ✔ (settings overhaul) |
+| Dark theme (window / tray menu / tray icon) | — | ✔ | ✔ |
+| 9 languages + follow system | — | ✔ | ✔ |
+| Independent popup theme (slider / OSD) | — | ✔ | ✔ |
+| Real-time system theme listening | — | ✔ | ✔ |
+| Global hotkeys (brightness up/down / screen off) | — | — | ✔ |
+| Per-hotkey enable toggles + one-click clear all | — | — | ✔ |
+| Wheel master switch / 9 step presets | — | — | ✔ |
+| Reset settings (hotkeys kept) | — | — | ✔ |
+| Settings window always-on-top toggle | — | — | ✔ |
 
 ## 📸 Screenshots
 
-| OSD overlay (wheel) | Left-click popup | Context menu |
-|:---:|:---:|:---:|
-| ![Wheel OSD](screenshots/wheel-osd.png) | ![Left-click popup](screenshots/left-click-popup.png) | ![Context menu](screenshots/context-menu-en.png) |
+| OSD overlay (wheel) | Left-click popup |
+|:---:|:---:|
+| ![Wheel OSD](screenshots/wheel-osd.png) | ![Left-click popup](screenshots/left-click-popup.png) |
 
 ## 🚀 Quick Start
 
-**Latest version (3.2.0):** see [`3.2.0/README.md`](3.0.0/README.md) for full features, usage, and build instructions.
+**Latest version (3.2.0):** see [`3.2.0/README.md`](3.2.0/README.md) for full features, usage, and build instructions.
 
 ## 🖱️ Show the tray icon
 
@@ -70,45 +65,40 @@ MIT License © 2026 GammaBrightnessTool Contributors. See `3.2.0/LICENSE`.
 
 > 💡 **简介**：一款简易的小工具，专为**无法使用 DDC/CI 的 Windows 电脑环境**（如台式机、VGA/HDMI 连接、不暴露 DDC/CI 的显示器）提供亮度调节能力。常驻系统托盘，支持鼠标滚轮快捷调节。无需特殊硬件或驱动，即可获得简单直观的屏幕亮度控制。
 
-本仓库包含项目**四代完整源码历史**，每个版本目录都是完整、可独立编译的源码快照。
+本仓库包含项目的源码历史，每个版本目录都是完整、可独立编译的源码快照。
 
 ## 📦 版本历史
 
-| 版本 | 发布说明 | 源码 | 绿色版 |
-|------|---------|------|--------|
-| **3.2.0**（最新） | 全局快捷键 + 深色/浅色主题 + 9 语言 + 设置页全面升级 | [`3.2.0/`](3.2.0/README.md) | —（随 Releases 发布） |
-| **3.0.0** | DPI 全面修复 + 多尺寸图标 + 代码清理 | [`3.0.0/`](3.0.0/README.md) | `3.0.0/GammaBrightnessTool-Portable-v3.0.0.zip` |
-| **2.0.0** | 左键弹窗 + 息屏按钮 + Gamma 下限重映射 | [`2.0.0/`](2.0.0/README.md) | —（仅源码，历史存档） |
-| **1.0.0** | 初版：滚轮调节 + OSD | [`1.0.0/`](1.0.0/README.md) | —（仅源码，历史存档） |
+| 版本 | 发布说明 | 源码 |
+|------|---------|------|
+| **3.2.0**（最新） | 全局快捷键 + 深色/浅色主题 + 9 语言 + 设置页全面升级 | [`3.2.0/`](3.2.0/README.md) |
+| **3.1.0** | 设置窗口 + 完整深色主题 + 9 语言 | [`3.1.0/`](3.1.0/README.md) |
+| **3.0.0** | DPI 全面修复 + 多尺寸图标 + 代码清理 | [`3.0.0/`](3.0.0/README.md) |
 
 ### ✨ 功能演进
 
-| 功能 | 1.0.0 | 2.0.0 | 3.0.0 | 3.2.0 |
-|------|:-----:|:-----:|:-----:|:-----:|
-| 托盘图标 + 静默启动 | ✔ | ✔ | ✔ | ✔ |
-| 滚轮调亮度（图标命中判定） | ✔ | ✔ | ✔（实时几何判定） | ✔ |
-| OSD 亮度浮窗 | ✔ | ✔ | ✔ | ✔ |
-| 亮度范围 | 10%~100% | 0%~100%（下限重映射） | 0%~100%（下限重映射） | 0%~100%（9 档步进预设） |
-| 左键亮度弹窗 | — | ✔ | ✔ | ✔ |
-| 息屏按钮 + 悬浮提示 | — | ✔ | ✔ | ✔ |
-| PerMonitorV2 高 DPI 感知 | 部分 | 部分 | ✔（manifest + 全物理坐标链） | ✔ |
-| DPI 切换实时重锚定 | — | — | ✔（200ms 轮询） | ✔ |
-| 图标自愈（资源管理器崩溃） | — | — | ✔ | ✔ |
-| 设置持久化（便携/AppData） | ✔ | ✔ | ✔ | ✔ |
-| 全局快捷键（增亮/降亮/熄屏） | — | — | — | ✔ |
-| 深浅色主题 + 9 语言 | — | — | 部分（仅深色） | ✔ |
-| 滚轮总开关 / 步进预设 | — | — | — | ✔ |
-| 重置设置 / 快捷键生效开关 | — | — | — | ✔ |
+| 功能 | 3.0.0 | 3.1.0 | 3.2.0 |
+|------|:-----:|:-----:|:-----:|
+| 设置窗口（非模态，导航分页） | — | ✔ | ✔（设置页全面升级） |
+| 深色主题（设置窗口/托盘菜单/托盘图标） | — | ✔ | ✔ |
+| 9 语言 + 跟随系统 | — | ✔ | ✔ |
+| 浮窗独立主题（滑块/OSD） | — | ✔ | ✔ |
+| 系统主题实时监听 | — | ✔ | ✔ |
+| 全局快捷键（增亮/降亮/熄屏） | — | — | ✔ |
+| 快捷键生效开关 + 一键清除 | — | — | ✔ |
+| 滚轮总开关 / 9 档步进预设 | — | — | ✔ |
+| 重置设置（快捷键保留） | — | — | ✔ |
+| 设置窗口置顶开关 | — | — | ✔ |
 
 ## 📸 界面截图
 
-| 滚轮浮窗（OSD） | 左键弹窗 | 右键菜单 |
-|:---:|:---:|:---:|
-| ![滚轮浮窗](screenshots/wheel-osd.png) | ![左键弹窗](screenshots/left-click-popup.png) | ![右键菜单](screenshots/context-menu-zh.png) |
+| 滚轮浮窗（OSD） | 左键弹窗 |
+|:---:|:---:|
+| ![滚轮浮窗](screenshots/wheel-osd.png) | ![左键弹窗](screenshots/left-click-popup.png) |
 
 ## 🚀 快速开始
 
-**最新版（3.2.0）：** 完整功能、使用方法与编译说明见 [`3.2.0/README.md`](3.0.0/README.md)。
+**最新版（3.2.0）：** 完整功能、使用方法与编译说明见 [`3.2.0/README.md`](3.2.0/README.md)。
 
 ## 🖱️ 显示托盘图标
 
