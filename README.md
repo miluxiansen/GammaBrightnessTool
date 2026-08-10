@@ -6,7 +6,7 @@ A Windows screen brightness adjustment tool built on .NET 8 / WinForms. It adjus
 
 > 💡 **What it is**: a lightweight utility for Windows environments where **DDC/CI is unavailable** (e.g. desktop PCs, VGA/HDMI setups, monitors that don't expose DDC/CI). It lives in the **system tray** and supports **mouse wheel** brightness adjustment out of the box. No special hardware or drivers required.
 
-This repository contains the source history of the project. Each version folder is a complete, independently-buildable source snapshot.
+> 🌐 **Languages**: Simplified Chinese, Traditional Chinese, English, Japanese, Korean, German, French, Spanish, Russian, and follow-system.
 
 ---
 
@@ -14,15 +14,15 @@ This repository contains the source history of the project. Each version folder 
 
 | Version | Release Notes | Source |
 |---------|---------------|--------|
-| **3.2.0** (Latest) | Global hotkeys + dark/light theme + 9 languages + settings overhaul | [`3.2.0/`](3.2.0/README.md) |
-| **3.1.0** | Settings window + full dark theme + 9 languages | [`3.1.0/`](3.1.0/README.md) |
-| **3.0.0** | DPI overhaul + multi-size icon + cleanup | [`3.0.0/`](3.0.0/README.md) |
+| **3.2.0** (Latest) | Global hotkeys + dark/light theme + more settings options | [`3.2.0/`](3.2.0/README.md) |
+
+Earlier versions (3.1.0: settings window + dark theme; 3.0.0: DPI overhaul) are archived and their source is no longer distributed.
 
 ### ✨ Feature evolution
 
 | Feature | 3.0.0 | 3.1.0 | 3.2.0 |
 |---------|:-----:|:-----:|:-----:|
-| Settings window (non-modal, navigation pages) | — | ✔ | ✔ (settings overhaul) |
+| Settings window (non-modal, navigation pages) | — | ✔ | ✔ (more settings options) |
 | Dark theme (window / tray menu / tray icon) | — | ✔ | ✔ |
 | 9 languages + follow system | — | ✔ | ✔ |
 | Independent popup theme (slider / OSD) | — | ✔ | ✔ |
@@ -65,21 +65,21 @@ MIT License © 2026 GammaBrightnessTool Contributors. See `3.2.0/LICENSE`.
 
 > 💡 **简介**：一款简易的小工具，专为**无法使用 DDC/CI 的 Windows 电脑环境**（如台式机、VGA/HDMI 连接、不暴露 DDC/CI 的显示器）提供亮度调节能力。常驻系统托盘，支持鼠标滚轮快捷调节。无需特殊硬件或驱动，即可获得简单直观的屏幕亮度控制。
 
-本仓库包含项目的源码历史，每个版本目录都是完整、可独立编译的源码快照。
+> 🌐 **支持语言**：简体中文、繁体中文、英语、日语、韩语、德语、法语、西班牙语、俄语，以及跟随系统。
 
 ## 📦 版本历史
 
 | 版本 | 发布说明 | 源码 |
 |------|---------|------|
-| **3.2.0**（最新） | 全局快捷键 + 深色/浅色主题 + 9 语言 + 设置页全面升级 | [`3.2.0/`](3.2.0/README.md) |
-| **3.1.0** | 设置窗口 + 完整深色主题 + 9 语言 | [`3.1.0/`](3.1.0/README.md) |
-| **3.0.0** | DPI 全面修复 + 多尺寸图标 + 代码清理 | [`3.0.0/`](3.0.0/README.md) |
+| **3.2.0**（最新） | 全局快捷键 + 深色/浅色主题 + 更多设置选项 | [`3.2.0/`](3.2.0/README.md) |
+
+更早的版本（3.1.0：设置窗口 + 深色主题；3.0.0：DPI 全面修复）已归档，源码不再分发。
 
 ### ✨ 功能演进
 
 | 功能 | 3.0.0 | 3.1.0 | 3.2.0 |
 |------|:-----:|:-----:|:-----:|
-| 设置窗口（非模态，导航分页） | — | ✔ | ✔（设置页全面升级） |
+| 设置窗口（非模态，导航分页） | — | ✔ | ✔（更多设置选项） |
 | 深色主题（设置窗口/托盘菜单/托盘图标） | — | ✔ | ✔ |
 | 9 语言 + 跟随系统 | — | ✔ | ✔ |
 | 浮窗独立主题（滑块/OSD） | — | ✔ | ✔ |
