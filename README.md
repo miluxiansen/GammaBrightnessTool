@@ -1,4 +1,4 @@
-# GammaBrightnessTool
+﻿# GammaBrightnessTool
 
 > **English** | [中文](#中文版--gammabrightnesstool)
 
@@ -6,7 +6,7 @@ A Windows screen brightness adjustment tool built on .NET 8 / WinForms. It adjus
 
 > 💡 **What it is**: a lightweight utility for Windows environments where **DDC/CI is unavailable** (e.g. desktop PCs, VGA/HDMI setups, monitors that don't expose DDC/CI). It lives in the **system tray** and supports **mouse wheel** brightness adjustment out of the box. No special hardware or drivers required.
 
-> 🌐 **Languages**: Simplified Chinese, Traditional Chinese, English, Japanese, Korean, German, French, Spanish, Russian, and follow-system.
+> 🌐 **Languages**: Simplified Chinese, Traditional Chinese, English, Japanese, Korean, German, French, Spanish, Russian.
 
 ---
 
@@ -24,7 +24,7 @@ Earlier versions (3.1.0: settings window + dark theme; 3.0.0: DPI overhaul) are 
 |---------|:-----:|:-----:|:-----:|
 | Settings window (non-modal, navigation pages) | — | ✔ | ✔ (more settings options) |
 | Dark theme (window / tray menu / tray icon) | — | ✔ | ✔ |
-| 9 languages + follow system | — | ✔ | ✔ |
+| 9 languages | — | ✔ | ✔ |
 | Independent popup theme (slider / OSD) | — | ✔ | ✔ |
 | Real-time system theme listening | — | ✔ | ✔ |
 | Global hotkeys (brightness up/down / screen off) | — | — | ✔ |
@@ -65,7 +65,7 @@ MIT License © 2026 GammaBrightnessTool Contributors. See `3.2.0/LICENSE`.
 
 > 💡 **简介**：一款简易的小工具，专为**无法使用 DDC/CI 的 Windows 电脑环境**（如台式机、VGA/HDMI 连接、不暴露 DDC/CI 的显示器）提供亮度调节能力。常驻系统托盘，支持鼠标滚轮快捷调节。无需特殊硬件或驱动，即可获得简单直观的屏幕亮度控制。
 
-> 🌐 **支持语言**：简体中文、繁体中文、英语、日语、韩语、德语、法语、西班牙语、俄语，以及跟随系统。
+> 🌐 **支持语言**：简体中文、繁体中文、英语、日语、韩语、德语、法语、西班牙语、俄语。
 
 ## 📦 版本历史
 
@@ -81,7 +81,7 @@ MIT License © 2026 GammaBrightnessTool Contributors. See `3.2.0/LICENSE`.
 |------|:-----:|:-----:|:-----:|
 | 设置窗口（非模态，导航分页） | — | ✔ | ✔（更多设置选项） |
 | 深色主题（设置窗口/托盘菜单/托盘图标） | — | ✔ | ✔ |
-| 9 语言 + 跟随系统 | — | ✔ | ✔ |
+| 9 语言 | — | ✔ | ✔ |
 | 浮窗独立主题（滑块/OSD） | — | ✔ | ✔ |
 | 系统主题实时监听 | — | ✔ | ✔ |
 | 全局快捷键（增亮/降亮/熄屏） | — | — | ✔ |
