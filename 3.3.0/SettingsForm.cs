@@ -205,9 +205,28 @@ public sealed class SettingsForm : Form
         }
     }
 
+    protected override void OnHandleCreated(EventArgs e)
+    {
+        base.OnHandleCreated(e);
+        ApplyTitleBarTheme();
+    }
+
+    /// <summary>Applies (or clears) DWM immersive dark mode on the title bar
+    /// so the window caption follows the app theme. Called on handle creation
+    /// and again on theme change.</summary>
+    private void ApplyTitleBarTheme()
+    {
+        if (!IsHandleCreated) return;
+        int dark = ThemeManager.IsDark ? 1 : 0;
+        // Windows 10 2004+ uses attr 19; Windows 11 uses 20. Try both.
+        NativeMethods.DwmSetWindowAttribute(Handle, NativeMethods.DWMWA_USE_IMMERSIVE_DARK_MODE, ref dark, sizeof(int));
+        NativeMethods.DwmSetWindowAttribute(Handle, NativeMethods.DWMWA_USE_IMMERSIVE_DARK_MODE_10, ref dark, sizeof(int));
+    }
+
     private void OnThemeChanged(object? sender, EventArgs e)
     {
         if (IsDisposed) return;
+        ApplyTitleBarTheme();
         // Theme switch no longer rebuilds the control tree (which caused
         // a visible nav delay and replayed the toggle slide animation).
         // Just repaint every control with the new palette directly.
