@@ -109,44 +109,17 @@ public static class SettingsManager
     public static string AppDataDirectory => SettingsDirectory;
     public static string SettingsFilePath => SettingsPath;
 
-    public static bool IsPortableMode { get; }
 
     static SettingsManager()
     {
-        string exeDir = Path.GetDirectoryName(Application.ExecutablePath) ?? "";
-
-        // 检测绿色模式：exe 目录可写，且不在系统 Program Files 中
-        bool usePortable = false;
-        try
-        {
-            string testFile = Path.Combine(exeDir, ".write_test");
-            File.WriteAllText(testFile, "test");
-            File.Delete(testFile);
-
-            string pf = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles);
-            string pf86 = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86);
-
-            bool inProgramFiles = (!string.IsNullOrEmpty(pf) && exeDir.StartsWith(pf, StringComparison.OrdinalIgnoreCase))
-                || (!string.IsNullOrEmpty(pf86) && exeDir.StartsWith(pf86, StringComparison.OrdinalIgnoreCase));
-
-            usePortable = !inProgramFiles;
-        }
-        catch { }
-
-        IsPortableMode = usePortable;
-
-        if (usePortable)
-        {
-            SettingsDirectory = exeDir;
-            SettingsPath = Path.Combine(exeDir, "settings.json");
-        }
-        else
-        {
-            SettingsDirectory = Path.Combine(
-                Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-                "GammaBrightnessTool");
-            SettingsPath = Path.Combine(SettingsDirectory, "settings.json");
-        }
+        // 统一使用 %APPDATA%\\GammaBrightnessTool 存放配置：
+        // - 安装版与绿色版行为一致，覆盖安装/更换目录都不影响配置；
+        // - 卸载时才由安装程序一并删除（见 Setup.iss [UninstallDelete]）；
+        // - 旧版绿色版配置（exe 旁 settings.json）在 Load 时自动迁移。
+        SettingsDirectory = Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+            "GammaBrightnessTool");
+        SettingsPath = Path.Combine(SettingsDirectory, "settings.json");
     }
 
     public static AppSettings Load()
@@ -158,13 +131,32 @@ public static class SettingsManager
                 var json = File.ReadAllText(SettingsPath);
                 return JsonSerializer.Deserialize<AppSettings>(json) ?? new AppSettings();
             }
-            else
+
+            // 主位置无配置：尝试从 exe 目录迁移旧绿色版配置（覆盖升级 /
+            // 统一 AppData 之前的版本，设置残留在 exe 旁 settings.json）。
+            string exeDir = Path.GetDirectoryName(Application.ExecutablePath) ?? "";
+            string altPath = !string.IsNullOrEmpty(exeDir) ? Path.Combine(exeDir, "settings.json") : "";
+            if (!string.IsNullOrEmpty(altPath)
+                && !string.Equals(altPath, SettingsPath, StringComparison.OrdinalIgnoreCase)
+                && File.Exists(altPath))
             {
-                // Auto-create default settings if not exists
-                var defaultSettings = new AppSettings();
-                Save(defaultSettings);
-                return defaultSettings;
+                try
+                {
+                    Directory.CreateDirectory(SettingsDirectory);
+                    File.Copy(altPath, SettingsPath, overwrite: true);
+                    var json = File.ReadAllText(SettingsPath);
+                    return JsonSerializer.Deserialize<AppSettings>(json) ?? new AppSettings();
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine($"Failed to migrate settings: {ex}");
+                }
             }
+
+            // Auto-create default settings if not exists
+            var defaultSettings = new AppSettings();
+            Save(defaultSettings);
+            return defaultSettings;
         }
         catch (Exception ex)
         {

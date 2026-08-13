@@ -16,6 +16,10 @@ internal static class ComboBoxNative
 
     [DllImport("uxtheme.dll", CharSet = CharSet.Unicode)]
     public static extern int SetWindowTheme(IntPtr hWnd, string pszSubAppName, string pszSubIdList);
+        [DllImport("gdi32.dll")]
+        public static extern IntPtr CreateSolidBrush(int crColor);
+        [DllImport("gdi32.dll")]
+        public static extern bool DeleteObject(IntPtr hObject);
 }
 
 /// <summary>
@@ -36,6 +40,11 @@ public sealed class ThemedComboBox : ComboBox
     // color after the system paint, so the native white square corners never
     // show on a dark theme.
     private Color _parentBg = Color.White;
+    // Cached GDI brush returned from WM_CTLCOLORLISTBOX (the popup
+    // list background). Created lazily and recreated when the
+    // item background colour changes; freed in Dispose.
+    private IntPtr _listBoxBrush = IntPtr.Zero;
+    private Color _listBoxBrushColor = Color.Empty;
 
     /// <summary>Corner radius of the closed combo box body.</summary>
     public int CornerRadius { get; set; } = 6;
@@ -92,6 +101,33 @@ public sealed class ThemedComboBox : ComboBox
             {
                 PostMessage(Parent.Handle, 0x020A, m.WParam, m.LParam);
             }
+            return;
+        }
+
+
+        // WM_CTLCOLORLISTBOX (0x0134): sent to the owner (us) to let it
+        // paint the dropdown list background. When the app theme is dark
+        // but the OS theme is light, the native popup list window (class
+        // "ComboLBox") is still drawn with the light system palette, which
+        // produces a white border / white corners around our dark items.
+        // Two-part fix: (1) return our dark item brush so the list surface
+        // behind/between the items is dark, and (2) apply the dark explorer
+        // theme to the list window itself so its border and scrollbar follow
+        // the dark style. WM_CTLCOLORLISTBOX is only sent while the list is
+        // open, so this is cheap and idempotent.
+        if (m.Msg == 0x0134)
+        {
+            if (ThemeManager.IsDark)
+            {
+                ComboBoxNative.SetWindowTheme(m.LParam, "DarkMode_Explorer", null);
+            }
+            if (_listBoxBrush == IntPtr.Zero || _listBoxBrushColor != _itemBgBrush.Color)
+            {
+                if (_listBoxBrush != IntPtr.Zero) ComboBoxNative.DeleteObject(_listBoxBrush);
+                _listBoxBrush = ComboBoxNative.CreateSolidBrush(ColorTranslator.ToWin32(_itemBgBrush.Color));
+                _listBoxBrushColor = _itemBgBrush.Color;
+            }
+            m.Result = _listBoxBrush;
             return;
         }
 
@@ -217,6 +253,11 @@ public sealed class ThemedComboBox : ComboBox
         if (disposing)
         {
             _bgBrush.Dispose();
+            if (_listBoxBrush != IntPtr.Zero)
+            {
+                ComboBoxNative.DeleteObject(_listBoxBrush);
+                _listBoxBrush = IntPtr.Zero;
+            }
             _itemBgBrush.Dispose();
         }
         base.Dispose(disposing);
@@ -236,7 +277,6 @@ public sealed class ThemedComboBox : ComboBox
     {
         if (!DroppedDown)
         {
-            Parent?.Focus();
             return;
         }
         base.OnMouseWheel(e);
