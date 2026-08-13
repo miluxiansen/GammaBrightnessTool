@@ -1,0 +1,38 @@
+## Build outputs
+bin/
+obj/
+publish/
+
+## Installer output
+Installer/
+
+## Release binaries (attach to GitHub Releases, not the repo)
+*.exe
+*.zip
+
+## Green version packaging
+GreenVersion/
+
+## IDE
+.vs/
+*.user
+*.suo
+
+## NuGet
+*.nupkg
+packages/
+
+## OS
+*.tmp
+*.log
+Thumbs.db
+desktop.ini
+
+## Self-contained publish artifacts (large)
+*.dll
+*.deps.json
+*.runtimeconfig.json
+
+## Keep Resources in repo but exclude generated build artifacts
+!Resources/*.ico
+!Resources/*.png
