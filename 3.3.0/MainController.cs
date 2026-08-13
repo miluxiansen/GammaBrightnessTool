@@ -498,10 +498,21 @@ del /f /q ""{batchPath}"" 2>nul
     {
         if (_settings == null) return;
         _settings.ColorTemperatureEnabled = enabled;
+        if (enabled)
+        {
+            // 开启色温：恢复上次保存的色温值（LastTemperature 由 SaveSettings 维护）
+            _gamma?.SetTemperature(_settings.LastTemperature);
+        }
+        else
+        {
+            // 关闭色温：恢复中性白 6600K。LastTemperature 保持原值不变，
+            // 下次开启色温时自动恢复用户上次设置的色温。
+            _gamma?.SetTemperature(GammaController.DEFAULT_TEMPERATURE);
+        }
         SettingsManager.Save(_settings);
         if (_popup != null) _popup.TemperatureEnabled = enabled; // update popup layout immediately
         // Update tray tooltip (hide temperature when disabled)
-        _trayIcon?.UpdateTooltip(_gamma?.CurrentBrightness ?? 1.0f, enabled ? _gamma?.CurrentTemperature ?? GammaController.DEFAULT_TEMPERATURE : GammaController.DEFAULT_TEMPERATURE, enabled);
+        _trayIcon?.UpdateTooltip(_gamma?.CurrentBrightness ?? 1.0f, _gamma?.CurrentTemperature ?? GammaController.DEFAULT_TEMPERATURE, enabled);
     }
 
     /// <summary>Stores the per-wheel-notch color temperature step (K) and syncs it everywhere.</summary>
@@ -836,7 +847,10 @@ del /f /q ""{batchPath}"" 2>nul
         if (_settings != null && _gamma != null)
         {
             _settings.LastBrightness = _gamma.CurrentBrightness;
-            _settings.LastTemperature = _gamma.CurrentTemperature;
+            // 色温关闭时保留 LastTemperature（此时 gamma 已是 6600K 中性），
+            // 以便下次开启色温时恢复用户上次设置的色温值。
+            if (_settings.ColorTemperatureEnabled)
+                _settings.LastTemperature = _gamma.CurrentTemperature;
             SettingsManager.Save(_settings);
         }
     }

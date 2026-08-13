@@ -86,6 +86,17 @@ public sealed class ThemedComboBox : ComboBox
 
     protected override void WndProc(ref Message m)
     {
+        // WM_NCPAINT: the closed box border is fully custom-drawn on
+        // WM_PAINT (client area), so nothing needs painting in the
+        // non-client area. Returning without calling DefWindowProc
+        // prevents the classic 3D sunken border that the classic theme
+        // paints on disabled combos (white top/left highlight).
+        if (m.Msg == 0x0085)
+        {
+            return;
+        }
+
+        // Suppress mouse-wheel value cycling while the dropdown is closed so
         // Suppress mouse-wheel value cycling while the dropdown is closed so
         // the page scroll container receives the wheel instead. Without this
         // the user scrolling a settings page accidentally changes the
@@ -137,6 +148,11 @@ public sealed class ThemedComboBox : ComboBox
             using var g = CreateGraphics();
             g.SmoothingMode = SmoothingMode.AntiAlias;
             g.PixelOffsetMode = PixelOffsetMode.Half;
+            // 0) Wipe the whole client area first: the classic theme paints a
+            //    white top/left highlight border on disabled combos; clearing
+            //    the entire surface before re-drawing the rounded body keeps
+            //    the field fully dark in every enabled state.
+            g.Clear(BackColor);
             int radius = Math.Min(CornerRadius, Math.Min(Width, Height) / 2);
             var rect = new Rectangle(0, 0, Width - 1, Height - 1);
             using var path = RoundedRect(rect, radius);
@@ -162,6 +178,34 @@ public sealed class ThemedComboBox : ComboBox
             // 3) Draw the final 1px themed border.
             using var pen = new Pen(_borderColor);
             g.DrawPath(pen, path);
+
+            // 4) The wipe above erased the selected text and the dropdown
+            //    arrow (the classic theme paints the arrow area white).
+            //    Redraw them ourselves: theme foreground when enabled,
+            //    a muted gray when disabled.
+            var textColor = Enabled
+                ? ForeColor
+                : (ThemeManager.IsDark ? Color.FromArgb(130, 130, 138) : Color.FromArgb(150, 150, 150));
+            if (SelectedIndex >= 0)
+            {
+                string text = GetItemText(Items[SelectedIndex]);
+                var textRect = new Rectangle(6, 0, Width - 32, Height);
+                TextRenderer.DrawText(g, text, Font, textRect, textColor,
+                    TextFormatFlags.VerticalCenter | TextFormatFlags.Left | TextFormatFlags.EndEllipsis);
+            }
+            // Dropdown arrow (right side).
+            int arrowX = Width - 14;
+            int arrowCy = Height / 2;
+            using (var arrowBrush = new SolidBrush(textColor))
+            {
+                var pts = new PointF[]
+                {
+                    new PointF(arrowX - 4, arrowCy - 2.5f),
+                    new PointF(arrowX + 4, arrowCy - 2.5f),
+                    new PointF(arrowX, arrowCy + 3.5f)
+                };
+                g.FillPolygon(arrowBrush, pts);
+            }
         }
         else if (m.Msg == 0x0014) // WM_ERASEBKGND: fill the whole client
         {
