@@ -1,10 +1,10 @@
-# GammaBrightnessTool
+﻿# GammaBrightnessTool
 
 English | [中文](#中文版--gammabrightnesstool)
 
 A Windows screen brightness & color temperature adjustment tool built on .NET 8 / WinForms. It adjusts the display via Gamma Ramp (`SetDeviceGammaRamp`), lives in the system tray, and supports quick wheel-based adjustment.
 
-💡 What it is: a lightweight utility for Windows environments where DDC/CI is unavailable (e.g. desktop PCs, VGA/HDMI setups, monitors that don't expose DDC/CI). It lives in the system tray and supports mouse wheel brightness adjustment out of the box. No special hardware or drivers required.
+💡 What it is: a lightweight utility for Windows environments where DDC/CI is unavailable. Most brightness-adjusting software relies on DDC/CI, while gamma-based brightness tools usually lack wheel adjustment. This one lives in the system tray and supports mouse wheel brightness adjustment out of the box. No special hardware or drivers required.
 
 🌐 Languages: Simplified Chinese, Traditional Chinese, English, Japanese, Korean, German, French, Spanish, Russian.
 
@@ -60,7 +60,7 @@ MIT License © 2026 GammaBrightnessTool Contributors. See [3.3.0/LICENSE](3.3.0/
 
 一个基于 .NET 8 / WinForms 的 Windows 屏幕亮度与色温调节工具。通过 Gamma Ramp（SetDeviceGammaRamp）调节显示器，常驻系统托盘，支持鼠标滚轮快捷调节。
 
-💡 简介：一款简易的小工具，专为无法使用 DDC/CI 的 Windows 电脑环境（如台式机、VGA/HDMI 连接、不暴露 DDC/CI 的显示器）提供亮度调节能力。常驻系统托盘，支持鼠标滚轮快捷调节。无需特殊硬件或驱动，即可获得简单直观的屏幕亮度控制。
+💡 简介：一款简易的小工具，专为无法使用 DDC/CI 的 Windows 电脑环境提供亮度调节能力。许多调整亮度的软件只支持通过 DDC/CI 调光，而通过调节 gamma 值来调整亮度的软件又大多不支持滚轮调节。本工具常驻系统托盘，支持鼠标滚轮快捷调节，无需特殊硬件或驱动，即可获得简单直观的屏幕亮度控制。
 
 🌐 支持语言：简体中文、繁体中文、英语、日语、韩语、德语、法语、西班牙语、俄语。
 
