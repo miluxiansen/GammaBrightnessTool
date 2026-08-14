@@ -28,9 +28,13 @@ A Windows screen brightness & color temperature adjustment tool built on .NET 8 
 
 ## 📸 Screenshots
 
-| OSD overlay (wheel) | Left-click popup |
-|---------------------|------------------|
-| ![wheel-osd](screenshots/wheel-osd.png) | ![left-click-popup](screenshots/left-click-popup.png) |
+| Settings (Chinese) | Settings (English) |
+|--------------------|--------------------|
+| ![settings-zh](screenshots/settings-zh.png) | ![settings-en](screenshots/settings-en.png) |
+
+| Left-click popup — brightness | Left-click popup — color temp | Left-click popup — default |
+|-------------------------------|-------------------------------|----------------------------|
+| ![popup-brightness](screenshots/popup-brightness.png) | ![popup-temperature](screenshots/popup-temperature.png) | ![popup-0814](screenshots/popup-0814.png) |
 
 ## 🚀 Quick Start
 
@@ -80,9 +84,13 @@ MIT License © 2026 GammaBrightnessTool Contributors. See [3.3.0/LICENSE](3.3.0/
 
 ## 📸 界面截图
 
-| 滚轮浮窗（OSD） | 左键弹窗 |
-|-----------------|----------|
-| ![wheel-osd](screenshots/wheel-osd.png) | ![left-click-popup](screenshots/left-click-popup.png) |
+| 设置窗口（中文） | 设置窗口（英文） |
+|------------------|------------------|
+| ![settings-zh](screenshots/settings-zh.png) | ![settings-en](screenshots/settings-en.png) |
+
+| 左键弹窗 — 亮度 | 左键弹窗 — 色温 | 左键弹窗 — 默认（色温关闭） |
+|-----------------|-----------------|------------------------------|
+| ![popup-brightness](screenshots/popup-brightness.png) | ![popup-temperature](screenshots/popup-temperature.png) | ![popup-0814](screenshots/popup-0814.png) |
 
 ## 🚀 快速开始
 
