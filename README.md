@@ -28,9 +28,9 @@ A Windows screen brightness & color temperature adjustment tool built on .NET 8 
 
 ## 📸 Screenshots
 
-| Settings (Chinese) | Settings (English) |
-|--------------------|--------------------|
-| ![settings-zh](screenshots/settings-zh.png) | ![settings-en](screenshots/settings-en.png) |
+| Settings |
+|----------|
+| ![settings-en](screenshots/settings-en.png) |
 
 | Left-click popup — brightness | Left-click popup — color temp | Left-click popup — default |
 |-------------------------------|-------------------------------|----------------------------|
@@ -84,9 +84,9 @@ MIT License © 2026 GammaBrightnessTool Contributors. See [3.3.0/LICENSE](3.3.0/
 
 ## 📸 界面截图
 
-| 设置窗口（中文） | 设置窗口（英文） |
-|------------------|------------------|
-| ![settings-zh](screenshots/settings-zh.png) | ![settings-en](screenshots/settings-en.png) |
+| 设置窗口 |
+|----------|
+| ![settings-zh](screenshots/settings-zh.png) |
 
 | 左键弹窗 — 亮度 | 左键弹窗 — 色温 | 左键弹窗 — 默认（色温关闭） |
 |-----------------|-----------------|------------------------------|
