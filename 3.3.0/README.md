@@ -1,4 +1,4 @@
-﻿# Gamma Brightness Tool - 3.3.0
+# Gamma Brightness Tool - 3.3.0
 
 > **English** | [中文](#中文版--gamma-brightness-tool-330)
 
@@ -89,7 +89,7 @@ GammaBrightnessTool/
 ├── ...                           # StartupManager / SettingsManager / helpers
 └── Resources/
     ├── tray-icons/               # Per-size sun PNGs (black/white)
-    ├── colortemp-icons-final/    # Temperature ring icons (color)
+    ├── colortemp-icons-final/    # Temperature ring icons (color/black/white)
     ├── gear-icons-original/      # Settings gear icons (black/white)
     └── APP.ico                   # App icon
 ```
@@ -189,7 +189,7 @@ GammaBrightnessTool/
 ├── ...                           # StartupManager / SettingsManager / 工具类
 └── Resources/
     ├── tray-icons/               # 多尺寸太阳图标 PNG（黑/白）
-    ├── colortemp-icons-final/    # 色温环形图标（彩色）
+    ├── colortemp-icons-final/    # 色温环形图标（彩色/黑/白）
     ├── gear-icons-original/      # 设置齿轮图标（黑/白）
     └── APP.ico                   # 应用图标
 ```

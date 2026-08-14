@@ -55,6 +55,15 @@ public sealed class SettingsForm : Form
     // fonts scaling and clipping fixed-height controls.
     private readonly float _dpiScale;
 
+    // ---- Self-drawn title bar ----
+    // Drawn as a normal themed control so theme switches repaint it
+    // instantly (no DWM caption lag). Fixed dialog: title + min + close.
+    private const int _titleBarH = 36;          // base height, scaled by _dpiScale
+    private const int _titleBtnW = 46;          // base width per caption button
+    private Panel? _titleBar;                    // the caption strip
+    private Label? _titleLabel;                  // window title text
+    private Label? _btnMin, _btnClose;           // caption buttons (self-drawn)
+    private Icon? _windowIcon;                   // taskbar button icon (borderless)
     private static SettingsForm? _instance;
 
     /// <summary>
@@ -81,11 +90,23 @@ public sealed class SettingsForm : Form
     private SettingsForm()
     {
         Text = Localization.Get("SettingsTitle");
-        FormBorderStyle = FormBorderStyle.FixedDialog;
+        // Self-drawn title bar: the system caption (DWM immersive dark mode)
+        // lags behind theme switches on Win11 and needs a forced repaint that
+        // flickers + desyncs the nav sidebar. Since the window is a fixed
+        // dialog with just a title + two buttons, we draw the caption
+        // ourselves as a normal themed control — instant theme refresh, no
+        // DWM involvement at all.
+        FormBorderStyle = FormBorderStyle.None;
         MaximizeBox = false;
-        MinimizeBox = true; // allow minimizing so it never blocks other apps
+        MinimizeBox = false;
         StartPosition = FormStartPosition.CenterScreen;
         ShowInTaskbar = true;
+        // Borderless (frame:false) windows do NOT inherit the exe's
+        // ApplicationIcon for their taskbar button, so the settings window
+        // showed a blank/default icon in the taskbar. Load APP.ico from the
+        // embedded resources and pin it explicitly.
+        _windowIcon = LoadAppIcon();
+        if (_windowIcon != null) Icon = _windowIcon;
         // Non-modal: keep using the tray while the window is open.
         // 置顶 (always-on-top) is user-controlled from the 通用设置 page so
         // it can be toggled for testing without covering other windows.
@@ -99,7 +120,7 @@ public sealed class SettingsForm : Form
         _dpiScale = DeviceDpi / 96f;
         // Classic 400px height: extra settings rows scroll inside the slim
         // ThemeScrollPanel instead of growing the window.
-        ClientSize = new Size((int)(560 * _dpiScale), (int)(400 * _dpiScale));
+        ClientSize = new Size((int)(560 * _dpiScale), (int)(400 * _dpiScale) + _titleBarH);
         BackColor = Bg;
         AutoScaleMode = AutoScaleMode.None;
         Font = new Font("Segoe UI", 9F);
@@ -140,6 +161,11 @@ public sealed class SettingsForm : Form
         _navList.SelectedIndexChanged += OnNavSelected;
         _navList.DrawItem += OnNavDrawItem;
         Controls.Add(_navList);
+        // Double-buffer the nav list so clicking its empty area (below
+        // the four items) does not visibly flicker the whole list on
+        // repaint. ListBox is not double-buffered by default.
+        typeof(ListBox).GetProperty("DoubleBuffered", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)
+            ?.SetValue(_navList, true, null);
 
 
         // Small version tag pinned to the bottom-left corner, under the
@@ -156,6 +182,9 @@ public sealed class SettingsForm : Form
             Anchor = AnchorStyles.Bottom | AnchorStyles.Left
         };
         // Position inside the sidebar footer area (nav width x bottom strip).
+        // ClientSize now includes the self-drawn title bar height, so the
+        // version tag anchors to the bottom of the whole client area (below
+        // the nav list, which fills down to the content panel bottom).
         _versionLabel.Location = new Point((int)(8 * _dpiScale), ClientSize.Height - (int)(26 * _dpiScale));
         Controls.Add(_versionLabel);
         _versionLabel.BringToFront(); // Keep it above the Fill content panel
@@ -192,6 +221,151 @@ public sealed class SettingsForm : Form
                 combo.Invalidate();
             }
         };
+
+        // Self-drawn caption must be added LAST: Dock layout processes
+        // controls in reverse z-order (last added docks first), so a Top-
+        // docked bar added first would be laid out after the Left sidebar
+        // had already consumed the left strip — ending up beside the nav,
+        // not across the top. Added last it docks first: full-width top,
+        // and the sidebar/content settle below it.
+        CreateTitleBar();
+    }
+
+    /// <summary>Builds the self-drawn caption strip: title text on the
+    /// left, minimize + close buttons on the right. Dragging the strip
+    /// moves the window via WM_NCLBUTTONDOWN/HTCAPTION (system handles
+    /// snapping/snap-layout); double-click minimizes. The buttons and
+    /// text are themed controls, so a theme switch repaints them
+    /// instantly — no DWM caption involvement.</summary>
+    private void CreateTitleBar()
+    {
+        int h = (int)(_titleBarH * _dpiScale);
+        int btnW = (int)(_titleBtnW * _dpiScale);
+        int btnH = h;
+
+        _titleBar = new Panel
+        {
+            Dock = DockStyle.Top,
+            Height = h,
+            BackColor = BgNav,
+            // No custom cursor: keep the normal arrow (a four-way "move"
+            // cursor over a caption is a modern Windows 11 convention but
+            // feels wrong on a fixed dialog; the strip still drags).
+        };
+
+        // Window title (localized, re-read on language rebuild).
+        _titleLabel = new Label
+        {
+            Text = Localization.Get("SettingsTitle"),
+            AutoSize = false,
+            TextAlign = ContentAlignment.MiddleLeft,
+            Font = new Font("Segoe UI", 9F),
+            ForeColor = TextMain,
+            BackColor = BgNav,
+            Dock = DockStyle.Fill,
+            Padding = new Padding((int)(12 * _dpiScale), 0, 0, 0)
+        };
+        _titleBar.Controls.Add(_titleLabel);
+
+        // Minimize button — added FIRST so the Close button (added after)
+        // docks to the far right, giving the standard [─][✕] order.
+        _btnMin = CreateCaptionButton("\u2013", Color.Empty);
+        _btnMin.Dock = DockStyle.Right;
+        _btnMin.Width = btnW;
+        _btnMin.Click += (_, _) => WindowState = FormWindowState.Minimized;
+        _titleBar.Controls.Add(_btnMin);
+
+        // Close button — added LAST, docks to the far right (after min).
+        _btnClose = CreateCaptionButton("\u2715", Color.FromArgb(232, 17, 35));
+        _btnClose.Dock = DockStyle.Right;
+        _btnClose.Width = btnW;
+        _btnClose.Click += (_, _) => Close();
+        _titleBar.Controls.Add(_btnClose);
+
+        // Dragging: the strip (and its children) forward mouse-down to the
+        // caption drag message so the system moves the window (with Win11
+        // snap layouts) and double-click minimizes. Only the text area
+        // drags; the caption buttons handle their own clicks.
+        _titleBar.MouseDown += TitleBar_MouseDown;
+        _titleBar.MouseDoubleClick += (_, _) => WindowState = FormWindowState.Minimized;
+        _titleLabel.MouseDown += TitleBar_MouseDown;
+        _titleLabel.MouseDoubleClick += (_, _) => WindowState = FormWindowState.Minimized;
+
+        // Theme refresh: the title strip follows the palette like any control.
+        _titleBar.Resize += (_, _) =>
+        {
+            if (_titleBar == null) return;
+            _titleBar.Invalidate();
+            _titleLabel?.Invalidate();
+        };
+
+        Controls.Add(_titleBar);
+        // NOTE: do NOT BringToFront() here. A Dock=Top control must stay at
+        // the END of the z-order (bottom) so Dock layout processes it FIRST
+        // and it spans the full client width. BringToFront moves it to the
+        // top of the z-order, so it is docked LAST — after the Left sidebar
+        // has already claimed the left strip — and it ends up beside the nav
+        // instead of across the top.
+    }
+
+    /// <summary>Creates one caption button (min/close). The label draws a
+    /// simple glyph on a hover/pressed background; close gets the classic
+    /// red hover. Themed via BackColor/ForeColor so RefreshAllThemes
+    /// repaints it instantly.</summary>
+    private Label CreateCaptionButton(string glyph, Color hoverBg)
+    {
+        var btn = new Label
+        {
+            Text = glyph,
+            AutoSize = false,
+            TextAlign = ContentAlignment.MiddleCenter,
+            Font = new Font("Segoe UI", 10F),
+            ForeColor = TextMain,
+            BackColor = BgNav,
+            Margin = new Padding(0)
+        };
+        btn.MouseEnter += (_, _) =>
+        {
+            btn.BackColor = hoverBg == Color.Empty
+                ? (ThemeManager.IsDark ? Color.FromArgb(60, 60, 64) : Color.FromArgb(229, 229, 229))
+                : hoverBg;
+        };
+        btn.MouseLeave += (_, _) => btn.BackColor = BgNav;
+        btn.MouseDown += (_, _) =>
+        {
+            btn.BackColor = hoverBg == Color.Empty
+                ? (ThemeManager.IsDark ? Color.FromArgb(52, 52, 56) : Color.FromArgb(212, 212, 212))
+                : Color.FromArgb(202, 15, 31);
+        };
+        return btn;
+    }
+
+    /// <summary>Drags the borderless window by the caption strip. The
+    /// system takes over once WM_NCLBUTTONDOWN/HTCAPTION is posted, giving
+    /// native snap layouts and live drag feedback.</summary>
+    private void TitleBar_MouseDown(object? sender, MouseEventArgs e)
+    {
+        if (e.Button != MouseButtons.Left) return;
+        if (e.Clicks > 1) { WindowState = FormWindowState.Minimized; return; }
+        NativeMethods.ReleaseCapture();
+        NativeMethods.SendMessage(Handle, NativeMethods.WM_NCLBUTTONDOWN, new IntPtr(NativeMethods.HTCAPTION), IntPtr.Zero);
+    }
+
+    /// <summary>Loads the embedded APP.ico (the exe's ApplicationIcon) for
+    /// the taskbar button of this borderless window. Returns null if the
+    /// resource is missing (falls back to no icon).</summary>
+    private static Icon? LoadAppIcon()
+    {
+        try
+        {
+            var asm = Assembly.GetExecutingAssembly();
+            var name = asm.GetManifestResourceNames()
+                .FirstOrDefault(n => n.EndsWith(".APP.ico", StringComparison.OrdinalIgnoreCase));
+            if (name == null) return null;
+            using var stream = asm.GetManifestResourceStream(name);
+            return stream == null ? null : new Icon(stream);
+        }
+        catch { return null; }
     }
 
     private static IEnumerable<ThemedComboBox> FindAllThemedCombos(Control root)
@@ -208,38 +382,33 @@ public sealed class SettingsForm : Form
     protected override void OnHandleCreated(EventArgs e)
     {
         base.OnHandleCreated(e);
-        ApplyTitleBarTheme();
-    }
-
-    /// <summary>Applies (or clears) DWM immersive dark mode on the title bar
-    /// so the window caption follows the app theme. Called on handle creation
-    /// and again on theme change.</summary>
-    private void ApplyTitleBarTheme()
-    {
-        if (!IsHandleCreated) return;
-        int dark = ThemeManager.IsDark ? 1 : 0;
-        // Windows 10 2004+ uses attr 19; Windows 11 uses 20. Try both.
-        NativeMethods.DwmSetWindowAttribute(Handle, NativeMethods.DWMWA_USE_IMMERSIVE_DARK_MODE, ref dark, sizeof(int));
-        NativeMethods.DwmSetWindowAttribute(Handle, NativeMethods.DWMWA_USE_IMMERSIVE_DARK_MODE_10, ref dark, sizeof(int));
+        // Borderless window: rounded corners + drop shadow. The system
+        // caption is gone, so there is no DWM title-bar theme to manage.
+        if (Environment.OSVersion.Version.Major >= 10)
+        {
+            int pref = NativeMethods.DWMWCP_ROUND;
+            NativeMethods.DwmSetWindowAttribute(Handle, NativeMethods.DWMWA_WINDOW_CORNER_PREFERENCE, ref pref, sizeof(int));
+        }
     }
 
     private void OnThemeChanged(object? sender, EventArgs e)
     {
         if (IsDisposed) return;
-        ApplyTitleBarTheme();
-        // Theme switch no longer rebuilds the control tree (which caused
-        // a visible nav delay and replayed the toggle slide animation).
-        // Just repaint every control with the new palette directly.
-        if (IsHandleCreated)
+        // ThemeChanged can fire from the thread pool: ThemeManager's 500ms
+        // registry poller runs on a System.Threading.Timer (thread-pool
+        // thread) and raises ThemeChanged there (System mode). All control
+        // mutation + the synchronous Update() repaint MUST happen on the
+        // window's UI thread; marshal if we are not on it.
+        if (InvokeRequired)
         {
-            // The theme combo's SelectedIndexChanged is on the call stack;
-            // defer the refresh so the combo finishes updating first.
-            BeginInvoke(RefreshAllThemes);
+            try { BeginInvoke(OnThemeChanged, sender, e); return; }
+            catch (ObjectDisposedException) { return; }
         }
-        else
-        {
-            RefreshAllThemes();
-        }
+        // No DWM caption involved anymore (self-drawn title bar), so a
+        // synchronous repaint of every control — including the caption
+        // strip — updates the whole window in one frame: no flicker, no
+        // title-vs-nav desync.
+        RefreshAllThemes();
     }
 
 
@@ -260,6 +429,21 @@ public sealed class SettingsForm : Form
             _versionLabel.ForeColor = TextMain;
         }
 
+        // Self-drawn caption strip: repaint title text + buttons with the
+        // new palette in the same frame as everything else.
+        if (_titleBar != null)
+        {
+            _titleBar.BackColor = BgNav;
+            _titleLabel!.BackColor = BgNav;
+            _titleLabel.ForeColor = TextMain;
+            _titleLabel.Text = Localization.Get("SettingsTitle");
+            _btnMin!.BackColor = BgNav;
+            _btnMin.ForeColor = TextMain;
+            _btnClose!.BackColor = BgNav;
+            _btnClose.ForeColor = TextMain;
+            _titleBar.Invalidate();
+        }
+
         // Refresh every page: first the page panel itself (its BackColor is
         // set at build time and must follow the theme), then its subtree.
         foreach (var page in new[] { _generalPage, _hotkeysPage, _aboutPage, _colorTempPage })
@@ -270,6 +454,16 @@ public sealed class SettingsForm : Form
                 RefreshTheme(child, Bg, BgInner, Border,
                              TextMain, Track, Thumb, ThumbHover, InputBg);
         }
+
+        // Synchronous repaint: every Invalidate() above only marks the
+        // control dirty — WM_PAINT is dispatched asynchronously by the
+        // message loop, so nested controls (page -> card -> row -> item)
+        // each repaint in a different frame, which reads as a "background
+        // first, options later" staggered switch. Update() sends WM_PAINT
+        // synchronously to this window, forcing the ENTIRE tree (window +
+        // child controls) to repaint in one call stack — one atomic frame
+        // for the whole theme switch.
+        Update();
     }
     /// <summary>Recursively refreshes a subtree of controls from the
     /// current theme palette. Walks each node once; delegating types
@@ -310,6 +504,9 @@ public sealed class SettingsForm : Form
             else if (c is ThemedComboBox tcb)
             {
                 tcb.ApplyTheme(inputBg, textMain);
+                // Rounded corners outside the body blend into the card's
+                // inner panel, not the input field colour.
+                tcb.SetParentBackground(bgInner);
                 count++;
             }
             else if (c is RoundedTextBox rtb)
@@ -410,6 +607,20 @@ public sealed class SettingsForm : Form
         _colorTempPage = BuildColorTempPage();
 
         Text = Localization.Get("SettingsTitle");
+
+        // Self-drawn caption: keep the title text + palette in sync on
+        // language rebuild (it is a normal themed control, not DWM).
+        if (_titleLabel != null)
+        {
+            _titleLabel.Text = Localization.Get("SettingsTitle");
+            _titleLabel.BackColor = BgNav;
+            _titleLabel.ForeColor = TextMain;
+            _titleBar!.BackColor = BgNav;
+            _btnMin!.BackColor = BgNav;
+            _btnMin.ForeColor = TextMain;
+            _btnClose!.BackColor = BgNav;
+            _btnClose.ForeColor = TextMain;
+        }
 
         if (navIndex < 0) navIndex = 0;
         _navList.SelectedIndex = navIndex; // triggers OnNavSelected -> adds page
@@ -1223,15 +1434,31 @@ public sealed class SettingsForm : Form
 
     private void OnNavSelected(object? sender, EventArgs e)
     {
-        _contentPanel.Controls.Clear();
+        int idx = _navList.SelectedIndex;
+        if (idx < 0) return; // blank area click clears the selection
 
-        switch (_navList.SelectedIndex)
+        Control target = idx switch
         {
-            case 0: _contentPanel.Controls.Add(_generalPage); break;
-            case 1: _contentPanel.Controls.Add(_colorTempPage); break;
-            case 2: _contentPanel.Controls.Add(_hotkeysPage); break;
-            case 3: _contentPanel.Controls.Add(_aboutPage); break;
+            0 => _generalPage,
+            1 => _colorTempPage,
+            2 => _hotkeysPage,
+            3 => _aboutPage,
+            _ => null!
+        };
+        if (target == null) return;
+
+        // Clicking the already-selected item (or the blank area, which some
+        // ListBox states report as a re-selection) fires SelectedIndexChanged
+        // without changing the index. Rebuilding the page on that would
+        // clear and re-add the panel, producing a visible flicker. Skip it
+        // when the target page is already showing.
+        if (_contentPanel.Controls.Count == 1 && ReferenceEquals(_contentPanel.Controls[0], target))
+        {
+            return;
         }
+
+        _contentPanel.Controls.Clear();
+        _contentPanel.Controls.Add(target);
     }
 
     private void OnNavDrawItem(object? sender, DrawItemEventArgs e)
@@ -1277,6 +1504,8 @@ public sealed class SettingsForm : Form
         _rebuildDebounce?.Dispose();
         _rebuildDebounce = null;
         ThemeManager.ThemeChanged -= OnThemeChanged;
+        _windowIcon?.Dispose();
+        _windowIcon = null;
         _instance = null;
         base.OnFormClosed(e);
     }

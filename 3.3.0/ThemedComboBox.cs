@@ -1,239 +1,188 @@
-﻿using System.Drawing;
+using System;
+using System.Collections.Generic;
+using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Runtime.InteropServices;
 using System.Windows.Forms;
-using static GammaBrightnessTool.NativeMethods;
 
 namespace GammaBrightnessTool;
 
-internal static class ComboBoxNative
-{
-    [DllImport("user32.dll")]
-    public static extern IntPtr GetWindowDC(IntPtr hWnd);
-
-    [DllImport("user32.dll")]
-    public static extern int ReleaseDC(IntPtr hWnd, IntPtr hDC);
-
-    [DllImport("uxtheme.dll", CharSet = CharSet.Unicode)]
-    public static extern int SetWindowTheme(IntPtr hWnd, string pszSubAppName, string pszSubIdList);
-        [DllImport("gdi32.dll")]
-        public static extern IntPtr CreateSolidBrush(int crColor);
-        [DllImport("gdi32.dll")]
-        public static extern bool DeleteObject(IntPtr hObject);
-}
-
 /// <summary>
-/// A DropDownList combo box that actually honors BackColor/ForeColor on
-/// Windows 10/11. Plain WinForms ComboBox with FlatStyle.Flat still gets
-/// drawn with the system colors by the theme-aware Common Controls, so on a
-/// dark theme the box body would stay white with black text. This subclass
-/// forces the edit/list area colors by handling WM_CTLCOLOR* and repainting
-/// the dropdown list items in the theme colors.
+/// Fully custom dropdown control (replaces the WinForms ComboBox).
+///
+/// Why: the native ComboBox popup (ComboLBox) owns its scrollbar — a themed
+/// WS_VSCROLL that stutters on first drag and renders its track dead-black in
+/// an owner-drawn list (Win11 OS behavior, unfixable from user code). Since we
+/// may add more languages/options later, extending the list height forever is
+/// not a real fix. This control draws its own box AND its own popup list with
+/// a custom scrollbar (same 6px style as ThemeScrollPanel), so scrolling is
+/// fully under our control and never stutters.
+///
+/// API-compatible with the old ThemedComboBox: Items.Add(string),
+/// SelectedIndex (with SelectedIndexChanged), ApplyTheme(background,
+/// foreground), SetParentBackground(color), CornerRadius, DropDownHeight.
 /// </summary>
-public sealed class ThemedComboBox : ComboBox
+public sealed class ThemedComboBox : Control
 {
-    private readonly SolidBrush _bgBrush;
-    private readonly SolidBrush _itemBgBrush;
-    private Color _borderColor = Color.FromArgb(205, 205, 205);
-    // Background of the parent surface (the card inner panel). The rounded
-    // corners outside the combo's own rounded rect are filled with this
-    // color after the system paint, so the native white square corners never
-    // show on a dark theme.
+    private readonly List<string> _items = new();
+    private int _selectedIndex = -1;
+    private Color _fieldBg = Color.White;
+    private Color _textColor = Color.Black;
     private Color _parentBg = Color.White;
-    // Cached GDI brush returned from WM_CTLCOLORLISTBOX (the popup
-    // list background). Created lazily and recreated when the
-    // item background colour changes; freed in Dispose.
-    private IntPtr _listBoxBrush = IntPtr.Zero;
-    private Color _listBoxBrushColor = Color.Empty;
+    private DropdownListPopup? _popup;
 
     /// <summary>Corner radius of the closed combo box body.</summary>
     public int CornerRadius { get; set; } = 6;
 
+    /// <summary>Kept for API compatibility; the popup height is computed
+    /// from item count and the working area instead.</summary>
+    public int DropDownHeight { get; set; } = 120;
+
+    /// <summary>Display items.</summary>
+    public List<string> Items => _items;
+
+    /// <summary>Currently selected index, or -1 when nothing is selected.
+    /// Setting the same value does not raise SelectedIndexChanged.</summary>
+    public int SelectedIndex
+    {
+        get => _selectedIndex;
+        set
+        {
+            int v = value < 0 || value >= _items.Count ? -1 : value;
+            if (v == _selectedIndex) return;
+            _selectedIndex = v;
+            Invalidate();
+            SelectedIndexChanged?.Invoke(this, EventArgs.Empty);
+        }
+    }
+
+    /// <summary>Text of the current selection ("" when none).</summary>
+    public string SelectedText => _selectedIndex >= 0 ? _items[_selectedIndex] : "";
+
+    /// <summary>List background color (popup uses it for its surface).</summary>
+    internal Color FieldBg => _fieldBg;
+
+    public event EventHandler? SelectedIndexChanged;
+
     public ThemedComboBox()
     {
-        DropDownStyle = ComboBoxStyle.DropDownList;
-        FlatStyle = FlatStyle.Flat;
-        DrawMode = DrawMode.OwnerDrawFixed;
-        _bgBrush = new SolidBrush(Color.White);
-        _itemBgBrush = new SolidBrush(Color.White);
+        SetStyle(ControlStyles.AllPaintingInWmPaint | ControlStyles.OptimizedDoubleBuffer |
+                 ControlStyles.UserPaint | ControlStyles.ResizeRedraw, true);
+        Font = new Font("Segoe UI", 10F);
     }
 
-    protected override void OnHandleCreated(EventArgs e)
-    {
-        base.OnHandleCreated(e);
-        // Disable the Win11 themed (UxTheme) drawing so BackColor and the
-        // Flat border color are honored. Without this the system draws a
-        // white border + white body regardless of our colors.
-        ComboBoxNative.SetWindowTheme(Handle, string.Empty, string.Empty);
-        // Remove the classic 3D sunken border (WS_EX_CLIENTEDGE): its
-        // top/left highlight is white and looks jarring on a dark theme.
-        // We draw our own rounded border on WM_PAINT instead.
-        const int WS_EX_CLIENTEDGE = 0x00000200;
-        const uint SWP_FRAMECHANGED = 0x0020;
-        const uint SWP_NOMOVE = 0x0002;
-        const uint SWP_NOSIZE = 0x0001;
-        const uint SWP_NOZORDER = 0x0004;
-        int ex = GetWindowLong(Handle, GWL_EXSTYLE);
-        if ((ex & WS_EX_CLIENTEDGE) != 0)
-        {
-            SetWindowLong(Handle, GWL_EXSTYLE, ex & ~WS_EX_CLIENTEDGE);
-            // Redraw the frame so the style change takes effect immediately.
-            SetWindowPos(Handle, IntPtr.Zero, 0, 0, 0, 0,
-                SWP_FRAMECHANGED | SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER);
-        }
-        ApplyTheme(BackColor, ForeColor);
-    }
-
-    protected override void WndProc(ref Message m)
-    {
-        // WM_NCPAINT: the closed box border is fully custom-drawn on
-        // WM_PAINT (client area), so nothing needs painting in the
-        // non-client area. Returning without calling DefWindowProc
-        // prevents the classic 3D sunken border that the classic theme
-        // paints on disabled combos (white top/left highlight).
-        if (m.Msg == 0x0085)
-        {
-            return;
-        }
-
-        // Suppress mouse-wheel value cycling while the dropdown is closed so
-        // Suppress mouse-wheel value cycling while the dropdown is closed so
-        // the page scroll container receives the wheel instead. Without this
-        // the user scrolling a settings page accidentally changes the
-        // language / theme / popup theme / step size when the cursor passes
-        // over a combo box. ComboBox does not call OnMouseWheel for its
-        // built-in wheel handling, so we have to intercept the message here.
-        if (m.Msg == 0x020A /* WM_MOUSEWHEEL */ && !DroppedDown)
-        {
-            // Forward the wheel to the parent scroll panel so the page
-            // scrolls instead of cycling the combo. Posting (not sending)
-            // lets our WndProc return cleanly first.
-            if (Parent != null)
-            {
-                PostMessage(Parent.Handle, 0x020A, m.WParam, m.LParam);
-            }
-            return;
-        }
-
-
-        // WM_CTLCOLORLISTBOX (0x0134): sent to the owner (us) to let it
-        // paint the dropdown list background. When the app theme is dark
-        // but the OS theme is light, the native popup list window (class
-        // "ComboLBox") is still drawn with the light system palette, which
-        // produces a white border / white corners around our dark items.
-        // Two-part fix: (1) return our dark item brush so the list surface
-        // behind/between the items is dark, and (2) apply the dark explorer
-        // theme to the list window itself so its border and scrollbar follow
-        // the dark style. WM_CTLCOLORLISTBOX is only sent while the list is
-        // open, so this is cheap and idempotent.
-        if (m.Msg == 0x0134)
-        {
-            if (ThemeManager.IsDark)
-            {
-                ComboBoxNative.SetWindowTheme(m.LParam, "DarkMode_Explorer", null);
-            }
-            if (_listBoxBrush == IntPtr.Zero || _listBoxBrushColor != _itemBgBrush.Color)
-            {
-                if (_listBoxBrush != IntPtr.Zero) ComboBoxNative.DeleteObject(_listBoxBrush);
-                _listBoxBrush = ComboBoxNative.CreateSolidBrush(ColorTranslator.ToWin32(_itemBgBrush.Color));
-                _listBoxBrushColor = _itemBgBrush.Color;
-            }
-            m.Result = _listBoxBrush;
-            return;
-        }
-
-        base.WndProc(ref m);
-        if (m.Msg == 0x000F) // WM_PAINT: repaint the border last
-        {
-            using var g = CreateGraphics();
-            g.SmoothingMode = SmoothingMode.AntiAlias;
-            g.PixelOffsetMode = PixelOffsetMode.Half;
-            // 0) Wipe the whole client area first: the classic theme paints a
-            //    white top/left highlight border on disabled combos; clearing
-            //    the entire surface before re-drawing the rounded body keeps
-            //    the field fully dark in every enabled state.
-            g.Clear(BackColor);
-            int radius = Math.Min(CornerRadius, Math.Min(Width, Height) / 2);
-            var rect = new Rectangle(0, 0, Width - 1, Height - 1);
-            using var path = RoundedRect(rect, radius);
-
-            // 1) Overpaint the system 3D sunken border (white top/left
-            //    highlight, gray bottom/right shadow) with the field
-            //    background using a thick pen along the rounded path.
-            using (var coverPen = new Pen(BackColor, 4f))
-            {
-                g.DrawPath(coverPen, path);
-            }
-
-            // 2) Fill the four corner triangles OUTSIDE the rounded path
-            //    with the parent background (also reverts the thick pen's
-            //    overshoot on the outside of the arcs).
-            using (var region = new Region(ClientRectangle))
-            using (var parentBrush = new SolidBrush(_parentBg))
-            {
-                region.Exclude(path);
-                g.FillRegion(parentBrush, region);
-            }
-
-            // 3) Draw the final 1px themed border.
-            using var pen = new Pen(_borderColor);
-            g.DrawPath(pen, path);
-
-            // 4) The wipe above erased the selected text and the dropdown
-            //    arrow (the classic theme paints the arrow area white).
-            //    Redraw them ourselves: theme foreground when enabled,
-            //    a muted gray when disabled.
-            var textColor = Enabled
-                ? ForeColor
-                : (ThemeManager.IsDark ? Color.FromArgb(130, 130, 138) : Color.FromArgb(150, 150, 150));
-            if (SelectedIndex >= 0)
-            {
-                string text = GetItemText(Items[SelectedIndex]);
-                var textRect = new Rectangle(6, 0, Width - 32, Height);
-                TextRenderer.DrawText(g, text, Font, textRect, textColor,
-                    TextFormatFlags.VerticalCenter | TextFormatFlags.Left | TextFormatFlags.EndEllipsis);
-            }
-            // Dropdown arrow (right side).
-            int arrowX = Width - 14;
-            int arrowCy = Height / 2;
-            using (var arrowBrush = new SolidBrush(textColor))
-            {
-                var pts = new PointF[]
-                {
-                    new PointF(arrowX - 4, arrowCy - 2.5f),
-                    new PointF(arrowX + 4, arrowCy - 2.5f),
-                    new PointF(arrowX, arrowCy + 3.5f)
-                };
-                g.FillPolygon(arrowBrush, pts);
-            }
-        }
-        else if (m.Msg == 0x0014) // WM_ERASEBKGND: fill the whole client
-        {
-            // area with the theme background (belt-and-braces with the
-            // WM_PAINT corner fill above).
-            using var g = Graphics.FromHdc(m.WParam);
-            g.Clear(BackColor);
-            m.Result = new IntPtr(1);
-        }
-    }
-
-    /// <summary>Sets the color used to fill the rounded corners (the parent
-    /// surface background) so the combo blends into its container.</summary>
+    /// <summary>Color used to fill the area outside the rounded corners
+    /// (should match the card the box sits on).</summary>
     public void SetParentBackground(Color color)
     {
         _parentBg = color;
         Invalidate();
     }
 
-    private static GraphicsPath RoundedRect(Rectangle r, int radius)
+    /// <summary>Field background + text color (theme refresh entry point).
+    /// Also syncs the corner fill (_parentBg): the body's rounded corners
+    /// are painted with it, and leaving it stale after a theme switch shows
+    /// the old theme's colour in the four corners (e.g. dark corners on a
+    /// light theme).</summary>
+    public void ApplyTheme(Color background, Color foreground)
+    {
+        _fieldBg = background;
+        _parentBg = background;
+        _textColor = foreground;
+        Invalidate();
+        if (_popup != null && _popup.Visible) _popup.Invalidate();
+    }
+
+    protected override void OnClick(EventArgs e)
+    {
+        base.OnClick(e);
+        if (!Enabled) return;
+        if (_popup != null && !_popup.IsDisposed && _popup.Visible)
+        {
+            _popup.ClosePopup();
+            return;
+        }
+        OpenPopup();
+    }
+
+    private void OpenPopup()
+    {
+        if (_items.Count == 0) return;
+        // Always build a fresh popup: Form.Close() can dispose a non-modal
+        // form when its handle is gone, and reusing a closed/disposed popup
+        // throws ObjectDisposedException on the next Show().
+        if (_popup != null)
+        {
+            _popup.Dispose();
+            _popup = null;
+        }
+        _popup = new DropdownListPopup(this);
+        _popup.ShowAt(this);
+    }
+
+    protected override void OnPaint(PaintEventArgs e)
+    {
+        var g = e.Graphics;
+        g.SmoothingMode = SmoothingMode.AntiAlias;
+        g.PixelOffsetMode = PixelOffsetMode.Half;
+
+        // Fill outside the rounded body with the parent color so no white
+        // square corners ever show on a dark theme.
+        using (var b = new SolidBrush(_parentBg))
+            g.FillRectangle(b, ClientRectangle);
+
+        var bodyRect = new Rectangle(0, 0, Width - 1, Height - 1);
+        using var path = RoundedRect(bodyRect, CornerRadius);
+
+        var bgColor = Enabled ? _fieldBg : Blend(_fieldBg, _parentBg, 0.45f);
+        using (var b = new SolidBrush(bgColor))
+            g.FillPath(b, path);
+
+        var border = ThemeManager.IsDark ? Color.FromArgb(80, 80, 88) : Color.FromArgb(150, 150, 150);
+        using (var pen = new Pen(border))
+            g.DrawPath(pen, path);
+
+        // Selected text.
+        var fg = Enabled ? _textColor : Blend(_textColor, _parentBg, 0.45f);
+        var textRect = new Rectangle(10, 0, Width - 10 - 24, Height);
+        TextRenderer.DrawText(g, SelectedText, Font, textRect, fg,
+            TextFormatFlags.VerticalCenter | TextFormatFlags.Left |
+            TextFormatFlags.EndEllipsis | TextFormatFlags.NoPadding);
+
+        // Dropdown arrow.
+        DrawArrow(g, fg);
+    }
+
+    private void DrawArrow(Graphics g, Color color)
+    {
+        int cx = Width - 11;
+        int cy = Height / 2;
+        using var b = new SolidBrush(color);
+        g.FillPolygon(b, new[]
+        {
+            new PointF(cx - 4f, cy - 2f),
+            new PointF(cx + 4f, cy - 2f),
+            new PointF(cx, cy + 3f)
+        });
+    }
+
+    protected override void OnEnabledChanged(EventArgs e)
+    {
+        base.OnEnabledChanged(e);
+        if (!Enabled && _popup != null && _popup.Visible) _popup.Close();
+        Invalidate();
+    }
+
+    protected override void Dispose(bool disposing)
+    {
+        if (disposing) _popup?.Dispose();
+        base.Dispose(disposing);
+    }
+
+    internal static GraphicsPath RoundedRect(Rectangle r, int radius)
     {
         var path = new GraphicsPath();
-        if (radius <= 0)
-        {
-            path.AddRectangle(r);
-            return path;
-        }
-        int d = radius * 2;
+        int d = Math.Max(1, radius * 2);
         path.AddArc(r.X, r.Y, d, d, 180, 90);
         path.AddArc(r.Right - d, r.Y, d, d, 270, 90);
         path.AddArc(r.Right - d, r.Bottom - d, d, d, 0, 90);
@@ -242,87 +191,457 @@ public sealed class ThemedComboBox : ComboBox
         return path;
     }
 
-    [System.Runtime.InteropServices.DllImport("user32.dll")]
-    private static extern bool PostMessage(IntPtr hWnd, uint Msg, IntPtr wParam, IntPtr lParam);
-
-    /// <summary>Refreshes the brushes from the current theme palette.</summary>
-    public void ApplyTheme(Color background, Color foreground)
+    private static Color Blend(Color a, Color b, double t)
     {
-        BackColor = background;
-        SetParentBackground(background);  // rounded corners follow the field color
-        ForeColor = foreground;
-        _bgBrush.Color = background;
-        _itemBgBrush.Color = background;
-        _borderColor = ThemeManager.IsDark ? Color.FromArgb(88, 88, 96) : Color.FromArgb(160, 160, 160);
-        Invalidate();
+        return Color.FromArgb(
+            Math.Clamp((int)(a.R + (b.R - a.R) * t), 0, 255),
+            Math.Clamp((int)(a.G + (b.G - a.G) * t), 0, 255),
+            Math.Clamp((int)(a.B + (b.B - a.B) * t), 0, 255));
+    }
+}
+
+/// <summary>
+/// The popup list window of <see cref="ThemedComboBox"/>: a borderless,
+/// non-activating, topmost form that draws its items and — when the list is
+/// taller than the screen budget — a custom 6px scrollbar. Clicking outside
+/// closes it (via an application message filter); a click inside selects the
+/// item under the cursor.
+/// </summary>
+internal sealed class DropdownListPopup : Form, IMessageFilter
+{
+    private readonly ThemedComboBox _owner;
+    private int _scrollPos;
+    private int _maxScroll;
+    private int _itemH;
+    private int _hoverIndex = -1;
+    private int _downIndex = -1;
+    private bool _draggingThumb;
+    private int _dragOffsetY;
+    // Top-level window we are attached to; its Deactivate closes us when the
+    // user clicks another app (a message filter only sees our own messages).
+    private Form? _ownerForm;
+    // Set on every mouse-down inside the popup (items, scrollbar).
+    private DateTime _lastInsideClick = DateTime.MinValue;
+    // Clicking this no-activate popup still makes the owner lose activation
+    // briefly (the OS foreground handling), with WM_MOUSEACTIVATE arriving
+    // before our MouseDown. So Deactivate does not close immediately: it
+    // arms this timer, and 200ms later we check whether a click actually
+    // landed inside us (scrollbar/item) or the user really left.
+    private readonly System.Windows.Forms.Timer _deactivateTimer = new() { Interval = 200 };
+    // Low-level mouse hook: the definitive "clicked outside" detector. The
+    // message filter only sees our own process, and owner Deactivate stops
+    // firing once the owner is already inactive, so clicks on other apps
+    // after the owner lost focus would otherwise never close the popup.
+    private IntPtr _mouseHook = IntPtr.Zero;
+    private LowLevelMouseProc? _mouseProc;
+    // Foreground watcher: Alt+Tab / switching apps with the keyboard never
+    // produces a mouse click, and once the owner is already inactive its
+    // Deactivate no longer fires either. Polling the foreground window
+    // catches every "user left" case regardless of how it happened.
+    private readonly System.Windows.Forms.Timer _foregroundTimer = new() { Interval = 100 };
+    private IntPtr _lastForeground = IntPtr.Zero;
+    // Max items visible without scrolling; the language list (10 items) will
+    // show the custom scrollbar, shorter lists show all items.
+    private const int MaxVisibleItems = 8;
+
+    public DropdownListPopup(ThemedComboBox owner)
+    {
+        _owner = owner;
+        FormBorderStyle = FormBorderStyle.None;
+        ShowInTaskbar = false;
+        // Not TopMost: a topmost popup floats above unrelated apps (e.g.
+        // over a chat input while typing). The popup sits above the active
+        // settings window naturally; clicking another app deactivates the
+        // owner and closes us.
+        StartPosition = FormStartPosition.Manual;
+        SetStyle(ControlStyles.AllPaintingInWmPaint | ControlStyles.OptimizedDoubleBuffer |
+                 ControlStyles.UserPaint | ControlStyles.ResizeRedraw, true);
+        _deactivateTimer.Tick += (_, _) =>
+        {
+            _deactivateTimer.Stop();
+            if ((DateTime.Now - _lastInsideClick).TotalMilliseconds >= 300 && Visible)
+            {
+                ClosePopup();
+            }
+        };
+        _foregroundTimer.Tick += (_, _) =>
+        {
+            if (!Visible || IsDisposed)
+            {
+                _foregroundTimer.Stop();
+                return;
+            }
+            IntPtr fg = GetForegroundWindow();
+            if (fg == _lastForeground) return;
+            _lastForeground = fg;
+            if (fg == Handle) return;
+            if (_ownerForm != null && (fg == _ownerForm.Handle || IsOwnedBy(fg, _ownerForm.Handle))) return;
+            ClosePopup();
+        };
     }
 
-    protected override void OnDrawItem(DrawItemEventArgs e)
-    {
-        if (e.Index < 0)
-        {
-            base.OnDrawItem(e);
-            return;
-        }
+    protected override bool ShowWithoutActivation => true;
 
-        bool selected = (e.State & DrawItemState.Selected) == DrawItemState.Selected;
+    protected override CreateParams CreateParams
+    {
+        get
+        {
+            var cp = base.CreateParams;
+            cp.ExStyle |= 0x08000000 /* WS_EX_NOACTIVATE */ | 0x00000080 /* WS_EX_TOOLWINDOW */;
+            return cp;
+        }
+    }
+
+    /// <summary>Position below (or above, when space is short) the owner and show.</summary>
+    public void ShowAt(ThemedComboBox owner)
+    {
+        _itemH = Math.Max(20, (int)(24 * owner.DeviceDpi / 96.0f));
+        int total = owner.Items.Count;
+        var work = Screen.GetWorkingArea(owner);
+        int maxListH = Math.Min((int)(work.Height * 0.6), MaxVisibleItems * _itemH + 4);
+        int listH = Math.Min(total * _itemH + 4, maxListH);
+        _maxScroll = Math.Max(0, total * _itemH - (listH - 4));
+        _scrollPos = Math.Clamp(_scrollPos, 0, _maxScroll);
+
+        var ownerRect = owner.RectangleToScreen(owner.ClientRectangle);
+        // Keep the popup inside the top-level window, not just the screen:
+        // with DWM rounded corners the transparent area outside the radius
+        // shows whatever is underneath, so a popup sticking out of its owner
+        // window exposes foreign content (desktop/other windows) as light or
+        // black corner patches. Intersect the working area with the owner
+        // window rect to make the corners show the owner's own background.
+        var bound = work;
+        if (owner.TopLevelControl is Control tl)
+        {
+            var tlRect = tl.RectangleToScreen(tl.ClientRectangle);
+            bound = Rectangle.Intersect(work, tlRect);
+            if (bound.Width < 60 || bound.Height < 60) bound = work; // fallback
+        }
+        int x = ownerRect.Left;
+        int y = ownerRect.Bottom + 1;
+        if (y + listH > bound.Bottom) y = ownerRect.Top - listH - 1;
+        if (y < bound.Top) y = bound.Top;
+        if (x + owner.Width > bound.Right) x = bound.Right - owner.Width;
+        if (x < bound.Left) x = bound.Left;
+        int finalH = Math.Min(listH, Math.Max(0, bound.Bottom - y));
+        Bounds = new Rectangle(x, y, owner.Width, finalH);
+
+        // Any pixel the custom paint does not cover (e.g. the thin border
+        // corners, or a repaint gap) must show the list background colour,
+        // never the form default (which is near-black on dark systems).
+        BackColor = _owner.FieldBg;
+
+        _hoverIndex = -1;
+        _downIndex = -1;
+
+        // Own the popup to the settings window: clicking the no-activate
+        // popup itself (items, scrollbar) keeps the owner active (no
+        // spurious Deactivate -> close), the popup stays above the owner,
+        // and clicking another app still deactivates the owner ->
+        // OnOwnerDeactivated closes us.
+        if (owner.TopLevelControl is Form topForm)
+        {
+            _ownerForm = topForm;
+            Owner = topForm;
+            topForm.Deactivate += OnOwnerDeactivated;
+        }
+        Show();
+        // Win11 rounds the corners of borderless TopMost windows and fills
+        // the area outside the radius with black; ask for an explicit round
+        // corner so the outside is transparent instead of black triangles.
+        try
+        {
+            int pref = 2; // DWMWCP_ROUND
+            NativeMethods.DwmSetWindowAttribute(Handle, 33 /* DWMWA_WINDOW_CORNER_PREFERENCE */, ref pref, sizeof(int));
+        }
+        catch { /* best-effort; harmless on older builds */ }
+        Application.AddMessageFilter(this);
+        InstallMouseHook();
+        _foregroundTimer.Start();
+    }
+
+    /// <summary>Hide the popup and detach the click filter. Unlike Form.Close,
+    /// this never disposes the form, so the owner can safely rebuild it.</summary>
+    public void ClosePopup()
+    {
+        _deactivateTimer.Stop();
+        _foregroundTimer.Stop();
+        UninstallMouseHook();
+        Application.RemoveMessageFilter(this);
+        if (_ownerForm != null)
+        {
+            _ownerForm.Deactivate -= OnOwnerDeactivated;
+            _ownerForm = null;
+        }
+        if (!IsDisposed) Hide();
+    }
+
+    private void OnOwnerDeactivated(object? sender, EventArgs e)
+    {
+        // The click that deactivated the owner may have landed on us (items,
+        // scrollbar) and its MouseDown arrives right after Deactivate; decide
+        // 200ms later based on whether a click actually happened inside.
+        _deactivateTimer.Stop();
+        _deactivateTimer.Start();
+    }
+
+    private void InstallMouseHook()
+    {
+        if (_mouseHook != IntPtr.Zero) return;
+        _mouseProc = MouseHookCallback;
+        _mouseHook = SetWindowsHookEx(14 /* WH_MOUSE_LL */, _mouseProc, GetModuleHandle(null), 0);
+    }
+
+    private void UninstallMouseHook()
+    {
+        if (_mouseHook != IntPtr.Zero)
+        {
+            UnhookWindowsHookEx(_mouseHook);
+            _mouseHook = IntPtr.Zero;
+        }
+    }
+
+    private IntPtr MouseHookCallback(int nCode, IntPtr wParam, IntPtr lParam)
+    {
+        if (nCode >= 0)
+        {
+            uint msg = (uint)wParam.ToInt64();
+            if (msg == 0x0201 /* WM_LBUTTONDOWN */ || msg == 0x0204 /* WM_RBUTTONDOWN */)
+            {
+                var pt = Marshal.PtrToStructure<MouseHookPoint>(lParam);
+                if (!Bounds.Contains(new Point(pt.X, pt.Y)))
+                {
+                    // Runs on the UI thread (hook installed there); still
+                    // defer so we never close while the message is being
+                    // dispatched to the popup itself.
+                    BeginInvoke(ClosePopup);
+                }
+            }
+        }
+        return CallNextHookEx(_mouseHook, nCode, wParam, lParam);
+    }
+
+    private delegate IntPtr LowLevelMouseProc(int nCode, IntPtr wParam, IntPtr lParam);
+
+    private static bool IsOwnedBy(IntPtr hwnd, IntPtr owner)
+    {
+        IntPtr cur = hwnd;
+        while (cur != IntPtr.Zero)
+        {
+            if (cur == owner) return true;
+            cur = GetWindow(cur, 4 /* GW_OWNER */);
+        }
+        return false;
+    }
+
+    [DllImport("user32.dll")]
+    private static extern IntPtr GetForegroundWindow();
+    [DllImport("user32.dll")]
+    private static extern IntPtr GetWindow(IntPtr hWnd, uint uCmd);
+
+    [StructLayout(LayoutKind.Sequential)]
+    private struct MouseHookPoint
+    {
+        public int X;
+        public int Y;
+    }
+
+    [DllImport("user32.dll", SetLastError = true)]
+    private static extern IntPtr SetWindowsHookEx(int idHook, LowLevelMouseProc lpfn, IntPtr hMod, uint dwThreadId);
+    [DllImport("user32.dll", SetLastError = true)]
+    private static extern bool UnhookWindowsHookEx(IntPtr hhk);
+    [DllImport("user32.dll")]
+    private static extern IntPtr CallNextHookEx(IntPtr hhk, int nCode, IntPtr wParam, IntPtr lParam);
+    [DllImport("kernel32.dll", CharSet = CharSet.Auto, SetLastError = true)]
+    private static extern IntPtr GetModuleHandle(string lpModuleName);
+
+    protected override void OnFormClosed(FormClosedEventArgs e)
+    {
+        Application.RemoveMessageFilter(this);
+        UninstallMouseHook();
+        if (_ownerForm != null)
+        {
+            _ownerForm.Deactivate -= OnOwnerDeactivated;
+            _ownerForm = null;
+        }
+        base.OnFormClosed(e);
+    }
+
+    /// <summary>Clicking anywhere outside the popup closes it; the message is
+    /// not swallowed so the underlying control still receives the click.</summary>
+    public bool PreFilterMessage(ref Message m)
+    {
+        if (m.Msg == 0x0201 /* WM_LBUTTONDOWN */ && Visible)
+        {
+            if (!Bounds.Contains(Cursor.Position)) ClosePopup();
+        }
+        return false;
+    }
+
+    protected override void OnPaint(PaintEventArgs e)
+    {
+        var g = e.Graphics;
+        g.SmoothingMode = SmoothingMode.AntiAlias;
         bool dark = ThemeManager.IsDark;
 
-        // Dropdown list item background: highlight for hovered, else a tone
-        // slightly lighter than the closed field so items read as distinct
-        // options, not part of the field background.
-        var bg = selected
-            ? (dark ? Color.FromArgb(78, 78, 86) : Color.FromArgb(229, 241, 251))
-            : (dark ? Color.FromArgb(66, 66, 72) : Color.FromArgb(252, 252, 252));
-        using (var bgBrush = new SolidBrush(bg))
+        var bg = _owner.FieldBg;
+        var hover = dark ? Color.FromArgb(78, 78, 86) : Color.FromArgb(229, 241, 251);
+        var textNormal = dark ? Color.FromArgb(232, 232, 232) : Color.FromArgb(40, 40, 40);
+
+        using (var b = new SolidBrush(bg))
+            g.FillRectangle(b, ClientRectangle);
+
+        int first = _scrollPos / _itemH;
+        int visible = Math.Max(0, (Height - 4) / _itemH);
+        int end = Math.Min(_owner.Items.Count, first + visible);
+        for (int i = first; i < end; i++)
         {
-            e.Graphics.FillRectangle(bgBrush, e.Bounds);
+            var rect = new Rectangle(1, 2 + (i - first) * _itemH, Width - 2, _itemH);
+            bool hov = i == _hoverIndex;
+            if (hov)
+            {
+                using var hb = new SolidBrush(hover);
+                g.FillRectangle(hb, rect);
+            }
+            var fg = textNormal;
+            var textRect = new Rectangle(rect.Left + 8, rect.Top, rect.Width - 16, rect.Height);
+            TextRenderer.DrawText(g, _owner.Items[i], _owner.Font, textRect, fg,
+                TextFormatFlags.VerticalCenter | TextFormatFlags.Left |
+                TextFormatFlags.EndEllipsis | TextFormatFlags.NoPadding);
         }
 
-        var text = Items[e.Index]?.ToString() ?? "";
-        var fg = selected
-            ? (dark ? Color.White : Color.FromArgb(20, 20, 20))
-            : (dark ? Color.FromArgb(232, 232, 232) : Color.FromArgb(40, 40, 40));
-        // Defensive: e.Font can be null on the very first draw (before the
-        // control's font is fully initialized); fall back to the control's
-        // own Font so the first paint never renders garbage.
-        var drawFont = e.Font ?? Font;
-        var rect = new Rectangle(e.Bounds.Left + 4, e.Bounds.Top, e.Bounds.Width - 8, e.Bounds.Height);
-        TextRenderer.DrawText(e.Graphics, text, drawFont, rect, fg,
-            TextFormatFlags.VerticalCenter | TextFormatFlags.Left | TextFormatFlags.EndEllipsis);
+        if (_maxScroll > 0) PaintScrollbar(g, dark);
+
+        // Rounded border matching the DWM corner preference so the 1px frame
+        // follows the rounded outline instead of being clipped at the corners.
+        var border = dark ? Color.FromArgb(88, 88, 96) : Color.FromArgb(160, 160, 160);
+        using (var pen = new Pen(border))
+        using (var path = ThemedComboBox.RoundedRect(new Rectangle(0, 0, Width - 1, Height - 1), 8))
+            g.DrawPath(pen, path);
+    }
+
+    private void PaintScrollbar(Graphics g, bool dark)
+    {
+        var tr = GetThumbRect();
+        var thumbColor = dark ? Color.FromArgb(88, 88, 96) : Color.FromArgb(190, 190, 190);
+        using var b = new SolidBrush(thumbColor);
+        using var path = ThemedComboBox.RoundedRect(tr, 2);
+        g.FillPath(b, path);
+    }
+
+    private Rectangle GetThumbRect()
+    {
+        int sbW = 6;
+        int x = Width - sbW - 3;
+        int trackH = Height - 8;
+        int totalH = _owner.Items.Count * _itemH;
+        int visibleH = Height - 4;
+        int thumbH = Math.Max(24, (int)(trackH * (double)visibleH / totalH));
+        double ratio = _maxScroll > 0 ? (double)_scrollPos / _maxScroll : 0;
+        int thumbY = 4 + (int)(ratio * (trackH - thumbH));
+        return new Rectangle(x, thumbY, sbW, thumbH);
+    }
+
+    private bool InScrollbarArea(int x) => x > Width - 12;
+
+    private int HitIndex(int y)
+    {
+        int first = _scrollPos / _itemH;
+        int idx = first + (y - 2) / _itemH;
+        if (idx < 0 || idx >= _owner.Items.Count) return -1;
+        return idx;
+    }
+
+    protected override void OnMouseMove(MouseEventArgs e)
+    {
+        if (_draggingThumb && _maxScroll > 0)
+        {
+            var tr = GetThumbRect();
+            int trackH = Height - 8;
+            int maxTravel = trackH - tr.Height;
+            double ratio = maxTravel > 0 ? (double)(e.Y - _dragOffsetY - 4) / maxTravel : 0;
+            _scrollPos = (int)Math.Round(Math.Clamp(ratio, 0, 1) * _maxScroll);
+            Invalidate();
+        }
+        else
+        {
+            int idx = HitIndex(e.Y);
+            if (idx != _hoverIndex)
+            {
+                _hoverIndex = idx;
+                Invalidate();
+            }
+        }
+        base.OnMouseMove(e);
+    }
+
+    protected override void OnMouseDown(MouseEventArgs e)
+    {
+        _lastInsideClick = DateTime.Now;
+        if (e.Button == MouseButtons.Left)
+        {
+            if (_maxScroll > 0 && InScrollbarArea(e.X))
+            {
+                var tr = GetThumbRect();
+                if (e.Y >= tr.Top && e.Y <= tr.Bottom)
+                {
+                    // Start dragging the thumb.
+                    _draggingThumb = true;
+                    _dragOffsetY = e.Y - tr.Top;
+                }
+                else
+                {
+                    // Click on the gutter: page up/down.
+                    int page = Height - 4;
+                    _scrollPos = Math.Clamp(_scrollPos + (e.Y < tr.Top ? -page : page), 0, _maxScroll);
+                    Invalidate();
+                }
+                _downIndex = -1;
+            }
+            else
+            {
+                _downIndex = HitIndex(e.Y);
+            }
+        }
+        base.OnMouseDown(e);
+    }
+
+    protected override void OnMouseUp(MouseEventArgs e)
+    {
+        if (_draggingThumb)
+        {
+            _draggingThumb = false;
+            return;
+        }
+        if (e.Button == MouseButtons.Left && _downIndex >= 0)
+        {
+            if (HitIndex(e.Y) == _downIndex)
+            {
+                _owner.SelectedIndex = _downIndex;
+                ClosePopup();
+                return;
+            }
+        }
+        _downIndex = -1;
+        base.OnMouseUp(e);
+    }
+
+    protected override void OnMouseWheel(MouseEventArgs e)
+    {
+        int delta = e.Delta > 0 ? -3 * _itemH : 3 * _itemH;
+        _scrollPos = Math.Clamp(_scrollPos + delta, 0, _maxScroll);
+        Invalidate();
     }
 
     protected override void Dispose(bool disposing)
     {
         if (disposing)
         {
-            _bgBrush.Dispose();
-            if (_listBoxBrush != IntPtr.Zero)
-            {
-                ComboBoxNative.DeleteObject(_listBoxBrush);
-                _listBoxBrush = IntPtr.Zero;
-            }
-            _itemBgBrush.Dispose();
+            Application.RemoveMessageFilter(this);
+            UninstallMouseHook();
+            _deactivateTimer.Dispose();
+            _foregroundTimer.Dispose();
         }
         base.Dispose(disposing);
-    }
-
-    /// <summary>
-    /// Suppress mouse-wheel value cycling while the dropdown is closed so the
-    /// page scroll container receives the wheel instead. Without this the
-    /// user scrolling a settings page accidentally changes the language /
-    /// theme / popup theme / step size when the cursor passes over a combo
-    /// box. When the dropdown is open the wheel must cycle items, so we
-    /// leave it. The primary intercept is in WndProc (ComboBox does not
-    /// route WM_MOUSEWHEEL through OnMouseWheel), but we also guard here
-    /// in case a host control forwards wheel via OnMouseWheel.
-    /// </summary>
-    protected override void OnMouseWheel(MouseEventArgs e)
-    {
-        if (!DroppedDown)
-        {
-            return;
-        }
-        base.OnMouseWheel(e);
     }
 }

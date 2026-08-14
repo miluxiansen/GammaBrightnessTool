@@ -44,6 +44,17 @@ public sealed class TrayIconManager : IDisposable
 
     private void OnSystemThemeChanged(object? sender, EventArgs e)
     {
+        var win = _messageWindow;
+        if (win != null && !win.IsDisposed && win.IsHandleCreated && win.InvokeRequired)
+        {
+            // ThemeManager's 500ms registry poll runs on a thread-pool
+            // timer, so this event can fire off the UI thread. UpdateIcon
+            // ForTheme disposes GDI icon objects and may fall back to
+            // RefreshIcon (which sleeps 100ms); marshal to the UI thread
+            // so those are never touched from a pool thread.
+            win.BeginInvoke(new Action(() => OnSystemThemeChanged(sender, e)));
+            return;
+        }
         try
         {
             UpdateIconForTheme();
@@ -56,6 +67,14 @@ public sealed class TrayIconManager : IDisposable
 
     private void OnThemeChanged(object? sender, EventArgs e)
     {
+        var win = _messageWindow;
+        if (win != null && !win.IsDisposed && win.IsHandleCreated && win.InvokeRequired)
+        {
+            // Same thread-pool timer origin: keep DWM attribute changes on
+            // the UI thread.
+            win.BeginInvoke(new Action(() => OnThemeChanged(sender, e)));
+            return;
+        }
         try
         {
             _messageWindow?.UpdateDwmTheme();

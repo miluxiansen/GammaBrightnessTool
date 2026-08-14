@@ -37,6 +37,14 @@ public sealed class GlobalMouseHook : IDisposable
     /// </summary>
     public Func<bool>? IsWheelEnabled { get; set; }
 
+    /// <summary>
+    /// Resolves whether color temperature adjustment is enabled, so the
+    /// wheel path's tooltip hides the temperature value when it is off
+    /// (matching every other UpdateTooltip call site). Injected by the
+    /// controller.
+    /// </summary>
+    public Func<bool>? IsColorTemperatureEnabled { get; set; }
+
     // Brightness throttling
     private long _lastBrightnessUpdate;   // Environment.TickCount64 (monotonic)
     private readonly TimeSpan _brightnessThrottle = TimeSpan.FromMilliseconds(50);
@@ -150,7 +158,8 @@ public sealed class GlobalMouseHook : IDisposable
                                 {
                                     _overlay.Show(_gamma.CurrentBrightness);
                                 }
-                                _trayIcon.UpdateTooltip(_gamma.CurrentBrightness, _gamma.CurrentTemperature);
+                                _trayIcon.UpdateTooltip(_gamma.CurrentBrightness, _gamma.CurrentTemperature,
+                                    IsColorTemperatureEnabled?.Invoke() ?? false);
                             }
                         }
                     }

@@ -232,8 +232,11 @@ public static class NativeMethods
     [DllImport("user32.dll", SetLastError = true)]
     public static extern bool SetWindowPos(IntPtr hWnd, IntPtr hWndInsertAfter, int X, int Y, int cx, int cy, uint uFlags);
 
+    public const uint SWP_NOSIZE = 0x0001;
+    public const uint SWP_NOMOVE = 0x0002;
     public const uint SWP_NOZORDER = 0x0004;
     public const uint SWP_NOACTIVATE = 0x0010;
+    public const uint SWP_FRAMECHANGED = 0x0020;
     public const uint SWP_NOOWNERZORDER = 0x0200;
 
     #endregion
@@ -306,6 +309,52 @@ public static class NativeMethods
 
     [DllImport("dwmapi.dll")]
     public static extern int DwmSetWindowAttribute(IntPtr hwnd, int attr, ref int attrValue, int attrSize);
+
+    [DllImport("dwmapi.dll")]
+    public static extern int DwmFlush();
+
+    [DllImport("user32.dll")]
+    public static extern bool RedrawWindow(IntPtr hWnd, IntPtr lprcUpdate, IntPtr hrgnUpdate, uint flags);
+
+    [DllImport("user32.dll")]
+    public static extern bool IsWindowVisible(IntPtr hWnd);
+
+    [DllImport("user32.dll")]
+    public static extern bool IsIconic(IntPtr hWnd);
+
+    public const uint RDW_FRAME = 0x0400;
+    public const uint RDW_INVALIDATE = 0x0001;
+    public const uint RDW_UPDATENOW = 0x0100;
+    public const uint RDW_ALLCHILDREN = 0x0080;
+
+    public const uint WM_NCACTIVATE = 0x0086;
+
+    public const int WM_THEMECHANGED = 0x031A;
+
+    // Self-drawn title bar (no system caption): shadow class style + the
+    // hit-test message used for caption dragging.
+    public const int CS_DROPSHADOW = 0x00020000;
+    public const uint WM_NCLBUTTONDOWN = 0x00A1;
+    public const uint WM_NCHITTEST = 0x0084;
+    public const int HTCAPTION = 2;
+    public const int HTCLIENT = 1;
+
+    [DllImport("user32.dll")]
+    public static extern bool ReleaseCapture();
+
+    [DllImport("user32.dll")]
+    public static extern int GetSystemMetrics(int nIndex);
+
+    public const int SM_CXSMICON = 49;
+    public const int SM_CYSMICON = 50;
+
+    // Win11 rounded window corners (DWM). Only applied when the window is
+    // borderless so the client area corners follow the same radius.
+    public const int DWMWA_WINDOW_CORNER_PREFERENCE = 33;
+    public const int DWMWCP_DEFAULT = 0;
+    public const int DWMWCP_DONOTROUND = 1;
+    public const int DWMWCP_ROUND = 2;
+    public const int DWMWCP_ROUNDSMALL = 3;
 
     public const int WM_MEASUREITEM = 0x002C;
     public const int WM_DRAWITEM = 0x002B;

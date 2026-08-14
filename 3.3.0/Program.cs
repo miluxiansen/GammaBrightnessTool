@@ -1,4 +1,4 @@
-﻿using System.Diagnostics;
+using System.Diagnostics;
 
 namespace GammaBrightnessTool;
 
@@ -39,7 +39,7 @@ internal static class Program
         if (args.Contains("--check-resources"))
         {
             int ok = 0;
-            foreach (var suffix in new[] { "tray-sun-black-16.png", "tray-sun-white-16.png", "colortemp-ring-color-24.png", "colortemp-ring-color-256.png", "gear-black-16.png", "gear-white-24.png" })
+            foreach (var suffix in new[] { "tray-sun-black-16.png", "tray-sun-white-16.png", "colortemp-ring-color-24.png", "colortemp-ring-color-256.png", "colortemp-ring-black-16.png", "colortemp-ring-white-16.png", "gear-black-16.png", "gear-white-24.png" })
             {
                 var n = typeof(IconGenerator).Assembly.GetManifestResourceNames()
                     .FirstOrDefault(x => x.EndsWith("." + suffix, StringComparison.OrdinalIgnoreCase));

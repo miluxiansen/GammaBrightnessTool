@@ -54,6 +54,13 @@ public sealed class ThemeScrollPanel : Panel
         {
             Location = new Point(0, 0)
         };
+        // Double-buffer the content so fast scrollbar drags redraw the
+        // children off-screen first — without this the rows flash as they
+        // are re-rendered while scrolling into view. DoubleBuffered is
+        // protected on Control, so set it via reflection.
+        typeof(Panel).GetProperty("DoubleBuffered",
+            System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)
+            ?.SetValue(_content, true);
         // Recompute layout whenever children change (added, removed, resized,
         // or relaid out). Dock is NOT used on children, so this is the only
         // place that positions them.

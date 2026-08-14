@@ -72,7 +72,8 @@ public sealed class MainController : IDisposable
             // Runtime-resolved so the settings UI changes apply immediately.
             IsInvertedScroll = () => _settings?.InvertScroll ?? false,
             IsOverlayEnabled = () => _settings?.ShowOverlay ?? true,
-            IsWheelEnabled = () => _settings?.WheelEnabled ?? true
+            IsWheelEnabled = () => _settings?.WheelEnabled ?? true,
+            IsColorTemperatureEnabled = () => _settings?.ColorTemperatureEnabled ?? false
         };
         _mouseHook.Install();
 
@@ -273,15 +274,6 @@ public sealed class MainController : IDisposable
         _overlay?.Show(brightness);
         _trayIcon?.UpdateTooltip(brightness, _gamma?.CurrentTemperature ?? GammaController.DEFAULT_TEMPERATURE, _settings?.ColorTemperatureEnabled ?? false);
         SaveSettings();
-    }
-
-    public void OnBrightnessChanged()
-    {
-        if (_gamma != null)
-        {
-        _trayIcon?.UpdateTooltip(_gamma.CurrentBrightness, _gamma.CurrentTemperature, _settings?.ColorTemperatureEnabled ?? false);
-            SaveSettings();
-        }
     }
 
     private void OnOverlayBrightnessChanged(object? sender, float brightness)

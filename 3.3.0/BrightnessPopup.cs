@@ -665,7 +665,15 @@ public sealed class BrightnessPopup : Form
         {
             float newTemp = GammaController.MIN_TEMPERATURE +
                 ratio * (GammaController.MAX_TEMPERATURE - GammaController.MIN_TEMPERATURE);
-            newTemp = (float)Math.Round(newTemp / GammaController.TEMPERATURE_STEP) * GammaController.TEMPERATURE_STEP;
+            // Snap to the 100K grid, but give the neutral 6600K point a
+            // wider attraction zone so the slider lingers for a moment
+            // when passing through the default temperature (a gentle
+            // tactile "pause" instead of just another grid stop).
+            const float neutralSnapHalfRange = 100f;
+            if (Math.Abs(newTemp - GammaController.DEFAULT_TEMPERATURE) <= neutralSnapHalfRange)
+                newTemp = GammaController.DEFAULT_TEMPERATURE;
+            else
+                newTemp = (float)Math.Round(newTemp / GammaController.TEMPERATURE_STEP) * GammaController.TEMPERATURE_STEP;
             newTemp = Math.Clamp(newTemp, GammaController.MIN_TEMPERATURE, GammaController.MAX_TEMPERATURE);
             UpdateTemperature(newTemp);
         }
