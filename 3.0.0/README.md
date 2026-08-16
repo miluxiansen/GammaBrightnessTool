@@ -193,3 +193,4 @@ GammaBrightnessTool/
 ## 📜 开源协议
 
 MIT License © 2025 GammaBrightnessTool Contributors
+
