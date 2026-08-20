@@ -12,7 +12,7 @@ A Windows screen brightness & color temperature adjustment tool built on .NET 8 
 
 | Version | Release Notes | Source |
 |---------|---------------|--------|
-| **3.5.0 (Latest)** | Gamma self-heal, fullscreen pause & disable | [3.5.0/](3.5.0/README.md) |
+| **3.5.0 (Latest)** | Gamma self-heal, fullscreen pause & feature off | [3.5.0/](3.5.0/README.md) |
 | 3.4.0 | Time-based auto adjustment & smooth transitions | [3.4.0/](3.4.0/README.md) |
 | 3.3.0 | Color temperature adjustment | [3.3.0/](3.3.0/README.md) |
 | 3.2.0 | Global hotkeys | [3.2.0/](3.2.0/README.md) |
@@ -21,17 +21,17 @@ A Windows screen brightness & color temperature adjustment tool built on .NET 8 
 
 ### ✨ Feature evolution
 
-| Feature | 3.0.0 | 3.1.0 | 3.2.0 | 3.3.0 | 3.4.0 | 3.5.0 |
-|---------|:-----:|:-----:|:-----:|:-----:|:-----:|:-----:|
-| Settings window | — | ✔ | ✔ | ✔ | ✔ | ✔ |
-| Theme switching | — | ✔ | ✔ | ✔ | ✔ | ✔ |
-| Global hotkeys | — | — | ✔ | ✔ | ✔ | ✔ |
-| Color temperature | — | — | — | ✔ | ✔ | ✔ |
-| Time-based adjustment | — | — | — | — | ✔ | ✔ |
-| Gamma self-heal (sleep/hot-plug) | — | — | — | — | — | ✔ |
-| Pause in fullscreen | — | — | — | — | — | ✔ |
-| Disable (tray menu) | — | — | — | — | — | ✔ |
-| Settings export/import | — | — | — | — | — | ✔ |
+| Feature | 3.1.0 | 3.2.0 | 3.3.0 | 3.4.0 | 3.5.0 |
+|---------|:-----:|:-----:|:-----:|:-----:|:-----:|
+| Settings window | ✔ | ✔ | ✔ | ✔ | ✔ |
+| Theme switching | ✔ | ✔ | ✔ | ✔ | ✔ |
+| Global hotkeys | — | ✔ | ✔ | ✔ | ✔ |
+| Color temperature | — | — | ✔ | ✔ | ✔ |
+| Time-based adjustment | — | — | — | ✔ | ✔ |
+| Gamma self-heal (sleep/hot-plug) | — | — | — | — | ✔ |
+| Pause in fullscreen | — | — | — | — | ✔ |
+| Feature off (tray menu) | — | — | — | — | ✔ |
+| Settings export/import | — | — | — | — | ✔ |
 
 ## 📸 Screenshots
 
@@ -75,7 +75,7 @@ MIT License © 2026 GammaBrightnessTool Contributors. See [3.5.0/LICENSE](3.5.0/
 
 | 版本 | 发布说明 | 源码 |
 |------|----------|------|
-| **3.5.0（最新）** | gamma 自愈 + 全屏暂停 + 禁用 | [3.5.0/](3.5.0/README.md) |
+| **3.5.0（最新）** | gamma 自愈 + 全屏暂停 + 功能停用 | [3.5.0/](3.5.0/README.md) |
 | 3.4.0 | 时间调整 + 平滑过渡 | [3.4.0/](3.4.0/README.md) |
 | 3.3.0 | 色温调节 | [3.3.0/](3.3.0/README.md) |
 | 3.2.0 | 全局快捷键 | [3.2.0/](3.2.0/README.md) |
@@ -84,17 +84,17 @@ MIT License © 2026 GammaBrightnessTool Contributors. See [3.5.0/LICENSE](3.5.0/
 
 ### ✨ 功能演进
 
-| 功能 | 3.0.0 | 3.1.0 | 3.2.0 | 3.3.0 | 3.4.0 | 3.5.0 |
-|------|:-----:|:-----:|:-----:|:-----:|:-----:|:-----:|
-| 设置窗口 | — | ✔ | ✔ | ✔ | ✔ | ✔ |
-| 主题切换 | — | ✔ | ✔ | ✔ | ✔ | ✔ |
-| 全局快捷键 | — | — | ✔ | ✔ | ✔ | ✔ |
-| 色温调节 | — | — | — | ✔ | ✔ | ✔ |
-| 时间调整（日出日落） | — | — | — | — | ✔ | ✔ |
-| gamma 自愈（唤醒/热插拔） | — | — | — | — | — | ✔ |
-| 全屏自动暂停 | — | — | — | — | — | ✔ |
-| 禁用（托盘菜单） | — | — | — | — | — | ✔ |
-| 设置导出/导入 | — | — | — | — | — | ✔ |
+| 功能 | 3.1.0 | 3.2.0 | 3.3.0 | 3.4.0 | 3.5.0 |
+|------|:-----:|:-----:|:-----:|:-----:|:-----:|
+| 设置窗口 | ✔ | ✔ | ✔ | ✔ | ✔ |
+| 主题切换 | ✔ | ✔ | ✔ | ✔ | ✔ |
+| 全局快捷键 | — | ✔ | ✔ | ✔ | ✔ |
+| 色温调节 | — | — | ✔ | ✔ | ✔ |
+| 时间调整（日出日落） | — | — | — | ✔ | ✔ |
+| gamma 自愈（唤醒/热插拔） | — | — | — | — | ✔ |
+| 全屏自动暂停 | — | — | — | — | ✔ |
+| 功能停用（托盘菜单） | — | — | — | — | ✔ |
+| 设置导出/导入 | — | — | — | — | ✔ |
 
 ## 📸 界面截图
 
