@@ -10,14 +10,14 @@ A Windows screen brightness & color temperature adjustment tool built on .NET 8 
 
 ## 📦 Version History
 
-| Version | Release Notes | Source |
-|---------|---------------|--------|
-| **3.5.0 (Latest)** | Gamma self-heal, fullscreen pause & feature off | [3.5.0/](3.5.0/README.md) |
-| 3.4.0 | Time-based auto adjustment & smooth transitions | [3.4.0/](3.4.0/README.md) |
-| 3.3.0 | Color temperature adjustment | [3.3.0/](3.3.0/README.md) |
-| 3.2.0 | Global hotkeys | [3.2.0/](3.2.0/README.md) |
-| 3.1.0 | Basic settings window + dark theme | — |
-| 3.0.0 | Base version for brightness adjustment | [3.0.0/](3.0.0/README.md) |
+| Version | Release Notes | Source | Installer | Portable |
+|---------|---------------|--------|-----------|----------|
+| **3.5.0 (Latest)** | Gamma self-heal, fullscreen pause & feature off | [3.5.0/](3.5.0/README.md) | [Download](https://github.com/miluxiansen/GammaBrightnessTool/releases/download/v3.5.0/GammaBrightnessTool_Setup.exe) | [Download](https://github.com/miluxiansen/GammaBrightnessTool/releases/download/v3.5.0/GammaBrightnessTool-Portable-v3.5.0.zip) |
+| 3.4.0 | Time-based auto adjustment & smooth transitions | [3.4.0/](3.4.0/README.md) | [Download](https://github.com/miluxiansen/GammaBrightnessTool/releases/download/v3.4.0/GammaBrightnessTool_Setup.exe) | [Download](https://github.com/miluxiansen/GammaBrightnessTool/releases/download/v3.4.0/GammaBrightnessTool-Portable-v3.4.0.zip) |
+| 3.3.0 | Color temperature adjustment | [3.3.0/](3.3.0/README.md) | [Download](https://github.com/miluxiansen/GammaBrightnessTool/releases/download/v3.3.0/GammaBrightnessTool_Setup.exe) | [Download](https://github.com/miluxiansen/GammaBrightnessTool/releases/download/v3.3.0/GammaBrightnessTool-Portable-v3.3.0.zip) |
+| 3.2.0 | Global hotkeys | [3.2.0/](3.2.0/README.md) | [Download](https://github.com/miluxiansen/GammaBrightnessTool/releases/download/v3.2.0/GammaBrightnessTool_Setup.exe) | [Download](https://github.com/miluxiansen/GammaBrightnessTool/releases/download/v3.2.0/GammaBrightnessTool-Portable-v3.2.0.zip) |
+| 3.1.0 | Basic settings window + dark theme | — | — | — |
+| 3.0.0 | Base version for brightness adjustment | [3.0.0/](3.0.0/README.md) | [Download](https://github.com/miluxiansen/GammaBrightnessTool/releases/download/v3.0.0/GammaBrightnessTool_Setup_v3.0.0.exe) | [Download](https://github.com/miluxiansen/GammaBrightnessTool/releases/download/v3.0.0/GammaBrightnessTool-Portable-v3.0.0.zip) |
 
 ### ✨ Feature evolution
 
@@ -73,14 +73,14 @@ MIT License © 2026 GammaBrightnessTool Contributors. See [3.5.0/LICENSE](3.5.0/
 
 ## 📦 版本历史
 
-| 版本 | 发布说明 | 源码 |
-|------|----------|------|
-| **3.5.0（最新）** | gamma 自愈 + 全屏暂停 + 功能停用 | [3.5.0/](3.5.0/README.md) |
-| 3.4.0 | 时间调整 + 平滑过渡 | [3.4.0/](3.4.0/README.md) |
-| 3.3.0 | 色温调节 | [3.3.0/](3.3.0/README.md) |
-| 3.2.0 | 全局快捷键 | [3.2.0/](3.2.0/README.md) |
-| 3.1.0 | 添加基础设置窗口 + 深色主题 | — |
-| 3.0.0 | 亮度调节的基础可用版本 | [3.0.0/](3.0.0/README.md) |
+| 版本 | 发布说明 | 源码 | 安装包 | 便携版 |
+|------|----------|------|--------|--------|
+| **3.5.0（最新）** | gamma 自愈 + 全屏暂停 + 功能停用 | [3.5.0/](3.5.0/README.md) | [下载](https://github.com/miluxiansen/GammaBrightnessTool/releases/download/v3.5.0/GammaBrightnessTool_Setup.exe) | [下载](https://github.com/miluxiansen/GammaBrightnessTool/releases/download/v3.5.0/GammaBrightnessTool-Portable-v3.5.0.zip) |
+| 3.4.0 | 时间调整 + 平滑过渡 | [3.4.0/](3.4.0/README.md) | [下载](https://github.com/miluxiansen/GammaBrightnessTool/releases/download/v3.4.0/GammaBrightnessTool_Setup.exe) | [下载](https://github.com/miluxiansen/GammaBrightnessTool/releases/download/v3.4.0/GammaBrightnessTool-Portable-v3.4.0.zip) |
+| 3.3.0 | 色温调节 | [3.3.0/](3.3.0/README.md) | [下载](https://github.com/miluxiansen/GammaBrightnessTool/releases/download/v3.3.0/GammaBrightnessTool_Setup.exe) | [下载](https://github.com/miluxiansen/GammaBrightnessTool/releases/download/v3.3.0/GammaBrightnessTool-Portable-v3.3.0.zip) |
+| 3.2.0 | 全局快捷键 | [3.2.0/](3.2.0/README.md) | [下载](https://github.com/miluxiansen/GammaBrightnessTool/releases/download/v3.2.0/GammaBrightnessTool_Setup.exe) | [下载](https://github.com/miluxiansen/GammaBrightnessTool/releases/download/v3.2.0/GammaBrightnessTool-Portable-v3.2.0.zip) |
+| 3.1.0 | 添加基础设置窗口 + 深色主题 | — | — | — |
+| 3.0.0 | 亮度调节的基础可用版本 | [3.0.0/](3.0.0/README.md) | [下载](https://github.com/miluxiansen/GammaBrightnessTool/releases/download/v3.0.0/GammaBrightnessTool_Setup_v3.0.0.exe) | [下载](https://github.com/miluxiansen/GammaBrightnessTool/releases/download/v3.0.0/GammaBrightnessTool-Portable-v3.0.0.zip) |
 
 ### ✨ 功能演进
 
