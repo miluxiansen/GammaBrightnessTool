@@ -1,0 +1,15 @@
+E:\VS Code\亮度\GammaBrightnessTool\GitHub-Release\3.6.0\bin\Release\net8.0-windows\win-x64\GammaBrightnessTool.exe
+E:\VS Code\亮度\GammaBrightnessTool\GitHub-Release\3.6.0\bin\Release\net8.0-windows\win-x64\GammaBrightnessTool.deps.json
+E:\VS Code\亮度\GammaBrightnessTool\GitHub-Release\3.6.0\bin\Release\net8.0-windows\win-x64\GammaBrightnessTool.runtimeconfig.json
+E:\VS Code\亮度\GammaBrightnessTool\GitHub-Release\3.6.0\bin\Release\net8.0-windows\win-x64\GammaBrightnessTool.dll
+E:\VS Code\亮度\GammaBrightnessTool\GitHub-Release\3.6.0\bin\Release\net8.0-windows\win-x64\GammaBrightnessTool.pdb
+E:\VS Code\亮度\GammaBrightnessTool\GitHub-Release\3.6.0\obj\Release\net8.0-windows\win-x64\GammaBrightnessTool.GeneratedMSBuildEditorConfig.editorconfig
+E:\VS Code\亮度\GammaBrightnessTool\GitHub-Release\3.6.0\obj\Release\net8.0-windows\win-x64\GammaBrightnessTool.AssemblyInfoInputs.cache
+E:\VS Code\亮度\GammaBrightnessTool\GitHub-Release\3.6.0\obj\Release\net8.0-windows\win-x64\GammaBrightnessTool.AssemblyInfo.cs
+E:\VS Code\亮度\GammaBrightnessTool\GitHub-Release\3.6.0\obj\Release\net8.0-windows\win-x64\GammaBrightnessTool.csproj.CoreCompileInputs.cache
+E:\VS Code\亮度\GammaBrightnessTool\GitHub-Release\3.6.0\obj\Release\net8.0-windows\win-x64\GammaBrightnessTool.sourcelink.json
+E:\VS Code\亮度\GammaBrightnessTool\GitHub-Release\3.6.0\obj\Release\net8.0-windows\win-x64\GammaBrightnessTool.dll
+E:\VS Code\亮度\GammaBrightnessTool\GitHub-Release\3.6.0\obj\Release\net8.0-windows\win-x64\refint\GammaBrightnessTool.dll
+E:\VS Code\亮度\GammaBrightnessTool\GitHub-Release\3.6.0\obj\Release\net8.0-windows\win-x64\GammaBrightnessTool.pdb
+E:\VS Code\亮度\GammaBrightnessTool\GitHub-Release\3.6.0\obj\Release\net8.0-windows\win-x64\GammaBrightnessTool.genruntimeconfig.cache
+E:\VS Code\亮度\GammaBrightnessTool\GitHub-Release\3.6.0\obj\Release\net8.0-windows\win-x64\ref\GammaBrightnessTool.dll
