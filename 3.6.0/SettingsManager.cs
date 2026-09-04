@@ -250,7 +250,8 @@ public static class SettingsManager
     {
         // 统一使用 %APPDATA%\GammaBrightnessTool 存放配置：
         // - 安装版与绿色版行为一致，覆盖安装/更换目录都不影响配置；
-        // - 卸载时才由安装程序一并删除（见 Setup.iss [UninstallDelete]）；
+        // - 卸载时由安装程序保留（见 Setup.iss [UninstallDelete]：明确不删 {userappdata}\GammaBrightnessTool）；
+        //   配置仅在"恢复出厂设置"或手动删除时清除，故卸载/重装后设置不会重置；
         // - 旧版绿色版配置（exe 旁 settings.json）在 Load 时自动迁移。
         SettingsDirectory = Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
@@ -265,6 +266,7 @@ public static class SettingsManager
             if (File.Exists(SettingsPath))
             {
                 var json = File.ReadAllText(SettingsPath);
+                OpLog.Log($"[settings] loaded main: {SettingsPath} ({json.Length} B)");
                 return JsonSerializer.Deserialize<AppSettings>(json) ?? new AppSettings();
             }
 
@@ -281,11 +283,12 @@ public static class SettingsManager
                     Directory.CreateDirectory(SettingsDirectory);
                     File.Copy(altPath, SettingsPath, overwrite: true);
                     var json = File.ReadAllText(SettingsPath);
+                    OpLog.Log($"[settings] migrated from exe dir: {altPath} -> {SettingsPath}");
                     return JsonSerializer.Deserialize<AppSettings>(json) ?? new AppSettings();
                 }
                 catch (Exception ex)
                 {
-                    Debug.WriteLine($"Failed to migrate settings: {ex}");
+                    OpLog.LogEx("[settings] migrate failed", ex);
                 }
             }
 
@@ -296,7 +299,7 @@ public static class SettingsManager
         }
         catch (Exception ex)
         {
-            Debug.WriteLine($"Failed to load settings: {ex}");
+            OpLog.LogEx("[settings] load failed", ex);
         }
 
         return new AppSettings();
@@ -311,11 +314,27 @@ public static class SettingsManager
             {
                 WriteIndented = true
             });
-            File.WriteAllText(SettingsPath, json);
+            // 原子写入：先写同目录临时文件再整体 Move 覆盖。直接 WriteAllText
+            // 覆盖在写入中途崩溃/断电会把 settings.json 截断成非法 JSON，
+            // 下次启动 IntegrityChecker 只能重建默认配置（用户设置全丢）。
+            // 同卷 File.Move(overwrite) 是重命名级原子操作，临时文件即使残留
+            // 也不会损坏正式配置。
+            string tmpPath = SettingsPath + ".tmp";
+            File.WriteAllText(tmpPath, json);
+            File.Move(tmpPath, SettingsPath, overwrite: true);
+            OpLog.LogThrottled("settings.save", $"[settings] saved ({json.Length} B) -> {SettingsPath}");
         }
         catch (Exception ex)
         {
-            Debug.WriteLine($"Failed to save settings: {ex}");
+            try
+            {
+                if (File.Exists(SettingsPath + ".tmp")) File.Delete(SettingsPath + ".tmp");
+            }
+            catch
+            {
+                // 清理失败不掩盖原始错误
+            }
+            OpLog.LogEx("[settings] save failed", ex);
         }
     }
 }

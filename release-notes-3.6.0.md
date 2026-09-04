@@ -1,7 +1,8 @@
 # Gamma Brightness Tool v3.6.0
 
 ### Downloads
-- **Installer**: `GammaBrightnessTool_Setup.exe` (~62 MB, includes .NET 8 Desktop Runtime)
+- **Installer**: `GammaBrightnessTool_Setup.exe` (~53 MB, self-contained loose files — .NET 8.0.29 Desktop Runtime is bundled inside the app folder; nothing is installed machine-wide)
+- **Portable**: `GammaBrightnessTool-Portable-v3.6.0.zip` (~69 MB, single-file self-contained exe)
 - **Source**: `3.6.0/` in this repository
 
 ---
@@ -18,8 +19,8 @@
 - **Neutral-point dwell on the temperature slider** — dragging past the default 6600K briefly dwells with a blue highlight (140 ms) then follows smoothly; releasing exactly on 6600K keeps 6600K. No sticking, no step jumps
 - **Popup / OSD opacity sliders** — independent 40–100% opacity for the left-click popup and the wheel OSD (General settings), applied live and persisted; the popup draws its first frame opaque to avoid a white/black flash
 - **Smoother dragging** — slider drags are coalesced on a 24 ms frame timer (gamma write + tooltip + save + events merged), so fast large drags no longer stutter
-- **Setup & packaging** — the installer is now framework-dependent (small fast files, ~110 ms cold start vs ~440 ms) and embeds the .NET 8 Desktop Runtime installer; it is only executed when the target machine lacks .NET 8
-- **Default-checked install tasks** — "Start with Windows" and "Create desktop icon" are now selected by default in the installer
+- **Packaging (final, 2026-09-04)** — the installer ships self-contained **loose files**: the app exe (185 KB) + `.NET 8.0.29 Desktop Runtime` files are laid out in the same folder, nothing is written machine-wide (`PrivilegesRequired=lowest`); Setup ≈ 53 MB, cold start ≈ 110 ms. Installer tasks ("Start with Windows" / desktop icon) are user-chosen, **not** default-checked
+- **Config preserved on uninstall** — `%APPDATA%\GammaBrightnessTool` is intentionally kept by both the installer and the green build
 
 #### 🐛 Bug Fixes (vs 3.5.0)
 
@@ -48,8 +49,8 @@
 - **色温滑轨 6600K 中性点轻顿** — 拖过默认 6600K 时短暂停顿并蓝色高亮（140ms），随后平滑跟手；恰好松手在 6600K 则保持 6600K，不粘手、不跳档
 - **弹窗 / OSD 透明度滑轨** — 通用设置新增左键弹窗与 OSD 浮窗两条独立透明度滑轨（40–100%，默认 90/70），实时生效并持久化；弹窗首帧先不透明绘制避免白/黑闪
 - **拖动更跟手** — 滑轨拖动按 24ms 合帧（gamma 写屏 + tooltip + 保存 + 事件合并），快速大幅拖动不再卡顿
-- **安装包与打包** — 安装器改为框架依赖散文件（启动 ~110ms，对比自包含 ~440ms），内嵌 .NET 8 Desktop Runtime 安装器；仅在目标机缺少 .NET 8 时才执行安装
-- **安装任务默认勾选** — 安装包中"开机自动启动"与"创建桌面图标"默认勾选
+- **打包形态（终版，2026-09-04）** — 安装器为**自包含散文件**：应用 exe（185KB）与 `.NET 8.0.29 Desktop Runtime` 全套散文件同目录铺装，不做任何机器级写入（`PrivilegesRequired=lowest`）；安装包 ≈ 53MB，冷启动 ≈ 110ms。安装任务（开机自启/桌面图标）由用户自选，**非默认勾选**
+- **卸载保留配置** — 安装版与绿色版卸载均刻意保留 `%APPDATA%\GammaBrightnessTool` 用户配置
 
 #### 🐛 3.6.0 修复（相对 3.5.0）
 
@@ -63,6 +64,24 @@
 - 修复运行中无法响应缩放变更——检测到显示缩放变化会自动重启进程并保留当前页与滚动位置
 - 修复"全屏自动暂停"需重启才生效（现即时生效）；热插拔新屏以启用屏平均值播种
 - 修复 DPI 变更后立即关闭设置窗口偶发崩溃（句柄重建期字体释放）
+
+#### 🔒 Final-release hardening (2026-09-04)
+
+- Atomic settings save (temp file + rename) — a crash/power loss mid-write can no longer truncate `settings.json`
+- Settings window no longer re-subscribes to controller events on every rebuild (leak/stale-closure fix)
+- Theme polling moved to the UI thread; tray-cache self-heal no longer deletes the system-wide icon stream; `NOTIFYICONDATA` switched to Unicode with 127-char tooltip truncation
+- GDI/handle leaks fixed (rounded-corner paths/regions, animation timers, shared-font lifecycle, bitmap stream lifetime); global mouse-hook work deferred off the hook callback
+- Green uninstall no longer deletes shared `%APPDATA%` config; tray **brightness levels** submenu restored (no stale OSD on preset switch)
+- Added in-app operation log (`%TEMP%\GammaBrightnessTool_ops.log`) and a `--selftest` automated check suite (9 checks)
+
+#### 🔒 终版加固（2026-09-04）
+
+- 配置原子保存（临时文件+改名），写盘中途崩溃不再损坏 settings.json
+- 设置窗不再每次重建都重复订阅控制器事件（修复累积泄漏与旧闭包）
+- 主题轮询改到 UI 线程；托盘缓存自检不再整体删除系统共享图标流；NOTIFYICONDATA 改 Unicode + tooltip 127 字符截断
+- 修复 GDI/句柄泄漏（圆角 Path/Region、动画 Timer、共享字体生命周期、Bitmap 流存活期）；全局钩子重活移出钩子回调
+- 绿色版卸载不再删除共享 %APPDATA% 配置；右键菜单恢复"亮度挡位"子菜单（切换挡位不再弹旧值 OSD）
+- 内置操作日志（%TEMP%\GammaBrightnessTool_ops.log）与 `--selftest` 自动化自检（9 项）
 
 ---
 *Full changelog details and technical notes: see `3.6.0/` source folder.*

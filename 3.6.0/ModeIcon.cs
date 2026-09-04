@@ -95,8 +95,11 @@ public sealed class ModeIcon : Control
         var name = asm.GetManifestResourceNames()
             .FirstOrDefault(n => n.EndsWith("." + suffix, StringComparison.OrdinalIgnoreCase));
         if (name == null) return null;
+        // Bitmap(Stream) 的流须在 Image 存续期内打开；此处先在流内拷贝独立副本。
         using var stream = asm.GetManifestResourceStream(name);
-        return stream == null ? null : new Bitmap(stream);
+        if (stream == null) return null;
+        using var src = new Bitmap(stream);
+        return new Bitmap(src);
     }
 
     protected override void OnPaint(PaintEventArgs e)

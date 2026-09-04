@@ -9,6 +9,7 @@ internal static class Program
 {
     private static Mutex? _mutex;
     private static MainController? _controller;
+    private static System.Windows.Forms.Timer? _selfTestTimer;
 
     /// <summary>
     /// Exposes the running controller to windows like SettingsForm so they
@@ -96,9 +97,13 @@ internal static class Program
         // Show-settings flag is handled after the single-instance check below.
         bool showSettingsArg = args.Contains("--show-settings");
 
+        // 自动化自测模式：只读/可逆检查（见 SelfTest.cs）。
+        // 此模式下绝不 Kill 任何进程（含同族实例）；互斥被占则放弃并提示。
+        bool selfTest = args.Contains("--selftest");
+
         // 加速冷启动：完整杀旧 + 互斥获取，仅在确有同族进程运行时执行。
         // 多数冷启动（开机自启/手动双击）此刻并无其他实例，跳过进程枚举直接拿互斥。
-        if (HasRunningInstances())
+        if (!selfTest && HasRunningInstances())
         {
             KillExistingInstances();
             Thread.Sleep(300); // 给 WaitForExit 后的句柄/互斥彻底释放一点时间
@@ -117,6 +122,30 @@ internal static class Program
         {
             // 互斥被另一实例持有（便携场景竞态窗口：旧版进程已退出但互斥句柄尚未
             // 释放；或极少数僵尸进程）。杀旧后重试获取，仍失败则短暂重试后放弃。
+            if (selfTest)
+            {
+                // 自测模式红线：不触碰任何进程、不 Kill。等待占用方（用户主动
+                // 退出）释放互斥，最长 30s；超时则放弃并提示。
+                OpLog.Log("[selftest] waiting for mutex release (existing instance must be closed by user) ...");
+                _mutex?.Dispose();
+                _mutex = null;
+                for (int i = 0; i < 60; i++)
+                {
+                    _mutex = new Mutex(true, "GammaBrightnessTool_SingleInstance", out createdNew);
+                    if (createdNew) break;
+                    _mutex.Dispose();
+                    _mutex = null;
+                    Thread.Sleep(500);
+                }
+                if (!createdNew)
+                {
+                    Console.WriteLine(
+                        "Selftest: another GammaBrightnessTool instance is running.\n" +
+                        "Close it first, then run again. No processes were touched.");
+                    OpLog.Log("[selftest] abort: mutex not released within 30s (no kill performed)");
+                    return;
+                }
+            }
             KillExistingInstances();
             Thread.Sleep(300);
             _mutex?.Dispose();
@@ -157,6 +186,8 @@ internal static class Program
         // Parse arguments
         bool silent = args.Contains("--silent") || args.Contains("-s");
         bool showSettings = showSettingsArg;
+        OpLog.Log($"[start] pid={Environment.ProcessId} ver={Application.ProductVersion} " +
+                  $"silent={silent} showSettings={showSettings} args=[{string.Join(",", args)}]");
 
         try
         {
@@ -176,8 +207,26 @@ internal static class Program
             Microsoft.Win32.SystemEvents.DisplaySettingsChanged += (_, _) =>
             {
                 SystemScaleChangePending = true;
+                OpLog.LogThrottled("sys.displaychange", "[event] DisplaySettingsChanged -> request restart");
                 RequestAutoRestart();
             };
+
+            // 自动化自测：等主控制器就绪后延迟执行，完成即退出（exit code=失败数>0）
+            if (selfTest)
+            {
+                _selfTestTimer = new System.Windows.Forms.Timer { Interval = 1200 };
+                _selfTestTimer.Tick += (_, _) =>
+                {
+                    _selfTestTimer.Stop();
+                    _selfTestTimer.Dispose();
+                    _selfTestTimer = null;
+                    int failures = SelfTest.RunAll();
+                    OpLog.Log($"[selftest] exit code = {(failures > 0 ? 1 : 0)}");
+                    Environment.ExitCode = failures > 0 ? 1 : 0;
+                    Application.Exit();
+                };
+                _selfTestTimer.Start();
+            }
 
             // Run message loop
             Application.Run();
@@ -271,6 +320,7 @@ internal static class Program
         if ((DateTime.UtcNow - _lastAutoRestartUtc).TotalMilliseconds < 3000) return;
         _autoRestarting = true;
         _lastAutoRestartUtc = DateTime.UtcNow;
+        OpLog.Log("[restart] auto restart triggered (dpi/display change)");
         try
         {
             // 设置窗打开时：先把"当前页 + 滚动位置"落盘，重启后 SettingsForm 自动恢复
@@ -297,6 +347,7 @@ internal static class Program
 
     private static void OnApplicationExit(object? sender, EventArgs e)
     {
+        OpLog.Log("[exit] application exit");
         _controller?.Dispose();
         ReleaseMutex();
     }

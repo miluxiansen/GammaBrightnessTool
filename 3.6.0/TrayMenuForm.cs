@@ -22,7 +22,7 @@ internal sealed class TrayMenuForm : Form
 
     private enum EntryKind { Item, Submenu, Separator }
 
-    internal enum SubmenuKind { Language, Disable }
+    internal enum SubmenuKind { Language, Disable, BrightnessLevels }
 
     // ---- “禁用”子菜单依赖注入（由 MainController 提供）----
     // 是否启用太阳调度（日出/日落选项可选的依据）。
@@ -106,6 +106,9 @@ internal sealed class TrayMenuForm : Form
     private void BuildEntries()
     {
         _entries.Clear();
+        // 亮度挡位放最上（语言上方）：与设置页"亮度挡位"同值同行为
+        // （不弹 OSD、按平滑开关走过渡），当前亮度落在哪个挡位就勾选哪个。
+        _entries.Add(new Entry { Kind = EntryKind.Submenu, Text = Localization.Get("BrightnessLevels"), Sub = SubmenuKind.BrightnessLevels });
         _entries.Add(new Entry { Kind = EntryKind.Submenu, Text = Localization.Get("Language"), Sub = SubmenuKind.Language });
         _entries.Add(new Entry { Kind = EntryKind.Submenu, Text = Localization.Get("DisableMenu"), Sub = SubmenuKind.Disable });
         _entries.Add(new Entry { Kind = EntryKind.Separator });
@@ -266,6 +269,10 @@ internal sealed class TrayMenuForm : Form
         {
             BuildDisableSubMenu(sub);
         }
+        else if (entry.Sub == SubmenuKind.BrightnessLevels)
+        {
+            BuildBrightnessLevelSubMenu(sub);
+        }
         else
         {
             var cur = Localization.Setting;
@@ -296,6 +303,31 @@ internal sealed class TrayMenuForm : Form
             y = work.Top;
         sub.ShowAt(new Point(x, y), size);
         _subMenu = sub;
+    }
+
+    /// <summary>
+    /// 构建“亮度挡位”子菜单：100% / 75% / 50% / 25% / 10%。
+    /// 与设置页“亮度挡位”完全同值同行为（走 SetBrightnessLevel：
+    /// 不弹 OSD、按“亮度平滑”开关走过渡/直切）；当前亮度最接近的挡位打勾。
+    /// </summary>
+    private void BuildBrightnessLevelSubMenu(TraySubMenu sub)
+    {
+        float[] levels = { 1.0f, 0.75f, 0.5f, 0.25f, 0.1f };
+        float current = Program.Instance?.GetCurrentBrightness() ?? 1.0f;
+        int best = 0;
+        float bestDist = float.MaxValue;
+        for (int i = 0; i < levels.Length; i++)
+        {
+            float d = Math.Abs(current - levels[i]);
+            if (d < bestDist) { bestDist = d; best = i; }
+        }
+        for (int i = 0; i < levels.Length; i++)
+        {
+            int idx = i; // 闭包捕获
+            float level = levels[i];
+            sub.AddChecked($"{(int)Math.Round(level * 100)}%", i == best,
+                () => Program.Instance?.SetBrightnessLevel(level));
+        }
     }
 
     /// <summary>

@@ -649,6 +649,9 @@ public sealed class BrightnessPopup : Form
         if (e.Button == MouseButtons.Left)
         {
             _isDragging = true;
+            // 捕获鼠标：命中区只有约 8px 高，不捕获的话指针略一移出即收不到
+            // MouseMove/MouseUp，拖动会"脱节"（松手事件也丢失，拖后值不落定）。
+            _sliderHitArea.Capture = true;
             // 取消上一松手遗留的"播完停留再落定"定时器
             _tempDwellTimer?.Dispose();
             _tempDwellTimer = null;
@@ -668,6 +671,7 @@ public sealed class BrightnessPopup : Form
     private void SliderHitArea_MouseUp(object? sender, MouseEventArgs e)
     {
         _isDragging = false;
+        if (_sliderHitArea.Capture) _sliderHitArea.Capture = false;
         long now = Environment.TickCount64;
         if (_mode == SliderMode.Temperature && now < _tempPauseUntilMs)
         {
@@ -1430,8 +1434,12 @@ public sealed class BrightnessPopup : Form
         var name = asm.GetManifestResourceNames()
             .FirstOrDefault(n => n.EndsWith("." + suffix, StringComparison.OrdinalIgnoreCase));
         if (name == null) return null;
+        // Bitmap(Stream) 要求流在 Image 存续期内保持打开（文档契约）；资源流在
+        // 方法结束即被释放，故先在流内拷贝一份独立像素副本再返回。
         using var stream = asm.GetManifestResourceStream(name);
-        return stream == null ? null : new Bitmap(stream);
+        if (stream == null) return null;
+        using var src = new Bitmap(stream);
+        return new Bitmap(src);
     }
 
     protected override void WndProc(ref Message m)
@@ -1455,6 +1463,9 @@ public sealed class BrightnessPopup : Form
             ThemeManager.PopupThemeChanged -= OnThemeChanged;
             Localization.LanguageChanged -= OnLanguageChanged;
             _tipHideTimer?.Dispose();
+            _tempDwellTimer?.Stop();
+            _tempDwellTimer?.Dispose();
+            _tempDwellTimer = null;
             _powerTip?.Dispose();
             _modeTip?.Dispose();
             _settingsTip?.Dispose();
@@ -1515,21 +1526,25 @@ public sealed class BrightnessPopup : Form
 
     private void ApplyRoundedCorners(int radius, int widthPx, int heightPx)
     {
-        var path = new GraphicsPath();
-        int diameter = radius * 2;
-        var rect = new Rectangle(0, 0, widthPx, heightPx);
+        // Region(Region) copies the geometry so the path can be disposed here.
+        using (var path = new GraphicsPath())
+        {
+            int diameter = radius * 2;
+            var rect = new Rectangle(0, 0, widthPx, heightPx);
 
-        path.AddArc(rect.X, rect.Y, diameter, diameter, 180, 90);
-        path.AddArc(rect.Right - diameter, rect.Y, diameter, diameter, 270, 90);
-        path.AddArc(rect.Right - diameter, rect.Bottom - diameter, diameter, diameter, 0, 90);
-        path.AddArc(rect.X, rect.Bottom - diameter, diameter, diameter, 90, 90);
-        path.CloseFigure();
+            path.AddArc(rect.X, rect.Y, diameter, diameter, 180, 90);
+            path.AddArc(rect.Right - diameter, rect.Y, diameter, diameter, 270, 90);
+            path.AddArc(rect.Right - diameter, rect.Bottom - diameter, diameter, diameter, 0, 90);
+            path.AddArc(rect.X, rect.Bottom - diameter, diameter, diameter, 90, 90);
+            path.CloseFigure();
 
-        // Dispose the previous region (rounded corners are re-applied on
-        // every resize/DPI change; leaking a Region per call would exhaust
-        // GDI handles over time).
-        Region?.Dispose();
-        Region = new Region(path);
+            // Dispose the previous region (rounded corners are re-applied on
+            // every resize/DPI change; leaking a Region per call would exhaust
+            // GDI handles over time).
+            var oldRegion = Region;
+            Region = new Region(path);
+            oldRegion?.Dispose();
+        }
     }
     // ================= 3.6.0: 多显示器独立行 =================
 
@@ -1805,6 +1820,20 @@ int labelHeight = (int)(20 * dpiScale);
         }
 
         public void SetName(string name) { _name = name; Invalidate(); }
+
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                // 行被替换（ApplyDisplayRows）/窗体关闭时停掉"松手播完停留"定时器：
+                // 否则 Tick 仍会在已释放的行上触发 FinalizeTempToPointer，访问
+                // 已释放控件 → ObjectDisposedException。
+                _tempDwellTimer?.Stop();
+                _tempDwellTimer?.Dispose();
+                _tempDwellTimer = null;
+            }
+            base.Dispose(disposing);
+        }
 
         /// <summary>
         /// 同步本行滑轨的模式与温度范围。色温模式开启后行滑轨显示/调节色温，

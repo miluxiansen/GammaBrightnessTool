@@ -20,8 +20,9 @@ A Windows screen brightness & color temperature adjustment tool built on .NET 8 
 - **Multi-monitor independent control (3.6.0)** — per-monitor gamma mode with one slider row per panel in both the popup and the OSD; stable EDID-based identity (no `\\.\DISPLAYn`); friendly display names read from the EDID (e.g. "G5c II") with per-monitor rename; info view shows each panel's resolution & scaling
 - **Neutral-point dwell (3.6.0)** — dragging past the default 6600K briefly dwells (blue highlight) then follows smoothly, without sticking or step jumps
 - **Popup / OSD opacity (3.6.0)** — independent 40–100% opacity sliders for the left-click popup and the wheel OSD in General settings, applied live and persisted
+- **Tray brightness levels (3.6.0)** — 100% / 75% / 50% / 25% / 10% submenu at the top of the tray right-click menu; preset switches respect the smooth-transition setting and never flash a stale OSD
 - **Settings window — 7 pages** — General / Brightness / Color temperature / Sunrise-sunset / Hotkeys / Monitors / About; theme switch is instant (no rebuild)
-- **Silent startup, single instance, auto-start, portable mode** — JSON settings beside the exe
+- **Silent startup, single instance, auto-start, portable mode** — settings stored in `%APPDATA%\GammaBrightnessTool\settings.json` (a legacy `settings.json` next to the exe is auto-migrated on first run)
 
 ## 📦 Download & Usage
 
@@ -31,8 +32,8 @@ Download `GammaBrightnessTool_Setup.exe` from the **Releases** page (Inno Setup 
 ### Option 2: Portable (recommended)
 Download `GammaBrightnessTool-Portable-v3.6.0.zip`:
 1. Extract to any folder, double-click `GammaBrightnessTool.exe`
-2. Settings are saved to `settings.json` next to the exe
-3. No .NET runtime needed (self-contained)
+2. Settings are stored in `%APPDATA%\GammaBrightnessTool\settings.json` (a legacy `settings.json` next to the exe is auto-migrated on first run)
+3. No .NET runtime needed (self-contained single file)
 
 ### Option 3: Build from source
 ```bash
@@ -63,8 +64,9 @@ dotnet publish -c Release -o publish --self-contained true -p:PublishSingleFile=
 - **Temperature**: Tanner Helland algorithm → per-channel multipliers, applied in the same ramp; 6600K = all 1.0 (pure brightness, backward compatible)
 - **Mouse hook**: `WH_MOUSE_LL`, only intercepts wheel events over the icon area; 50ms throttle
 - **Popup anchoring**: `Shell_NotifyIconGetRect` physical coordinates, 200ms polling re-anchor, DPI-change relayout
-- **Thread safety**: gamma updates locked; hook callbacks marshal to the UI thread via `Invoke`
-- **Performance**: ~0% idle CPU, no GDI/handle leaks
+- **Thread safety**: gamma updates locked; hook callbacks defer heavy work to the UI thread via `BeginInvoke`
+- **Diagnostics**: in-app operation log (`%TEMP%\GammaBrightnessTool_ops.log`) + `--selftest` automated checks; no crash goes unlogged (`%TEMP%\GammaBrightnessTool_crash.log`)
+- **Performance**: ~0% idle CPU, no GDI/handle leaks (validated: theme-cycle GDI delta 0)
 
 ## 📁 File Structure
 
@@ -87,8 +89,11 @@ GammaBrightnessTool/
 ├── SettingsForm.cs               # Settings window (7 pages, instant theme refresh)
 ├── HotKeyService.cs              # Global hotkey registration (WM_HOTKEY)
 ├── IconGenerator.cs              # Multi-size tray icon assembly
+├── TrayMenuForm.cs               # Owner-drawn tray menu (levels / language / disable)
 ├── Localization.cs               # 9 languages
 ├── ThemeManager.cs               # Theme resolution + popup palette
+├── OpLog.cs                      # Operation log (diagnostics, %TEMP%)
+├── SelfTest.cs                   # --selftest automated checks
 ├── ...                           # StartupManager / SettingsManager / helpers
 └── Resources/
     ├── tray-icons/               # Per-size sun PNGs (black/white)
@@ -123,8 +128,9 @@ MIT License © 2026 GammaBrightnessTool Contributors
 - ✅ **多显示器独立控制 (3.6.0)** - 每屏独立 gamma；开启后弹窗与 OSD 各屏一行滑轨；用 EDID 实例 ID 稳定标识（不用 `\\.\DISPLAYn`）；显示器名称自动读 EDID 友好型号（如 "G5c II"），支持逐屏重命名；信息区显示各屏分辨率与缩放比
 - ✅ **中性点轻顿 (3.6.0)** - 拖动经过默认 6600K 时短暂停留一拍（蓝色高亮）后平滑跟手，不粘滞、不跳档
 - ✅ **弹窗/OSD 透明度 (3.6.0)** - 通用设置新增「左键弹窗透明度 / OSD 浮窗透明度」两条滑轨（40–100%，独立控制，实时生效并持久化）
+- ✅ **托盘亮度挡位 (3.6.0)** - 右键菜单顶部新增 100%/75%/50%/25%/10% 挡位子菜单；切换尊重"亮度平滑"开关、不弹旧值 OSD
 - ✅ **设置窗口 7 页导航** - 通用 / 亮度 / 色温 / 日出日落 / 快捷键 / 显示器设置 / 关于；主题切换即时生效（不重建窗口）
-- ✅ **静默启动 / 单实例 / 开机自启 / 绿色便携** - 配置存 exe 旁 settings.json
+- ✅ **静默启动 / 单实例 / 开机自启 / 绿色便携** - 配置存 `%APPDATA%\GammaBrightnessTool\settings.json`（exe 旁旧版 settings.json 首次运行自动迁移）
 
 ## 📦 下载与使用
 
@@ -134,8 +140,8 @@ MIT License © 2026 GammaBrightnessTool Contributors
 ### 方式二：绿色版（推荐）
 下载 `GammaBrightnessTool-Portable-v3.6.0.zip`：
 1. 解压到任意文件夹，双击 `GammaBrightnessTool.exe` 运行
-2. 设置自动保存在 exe 同目录的 `settings.json`
-3. 无需安装 .NET 运行时（已自包含）
+2. 设置自动保存在 `%APPDATA%\GammaBrightnessTool\settings.json`（exe 同目录的旧版 settings.json 首次运行会自动迁移）
+3. 无需安装 .NET 运行时（自包含单文件）
 
 ### 方式三：源码编译
 ```bash
@@ -166,8 +172,9 @@ dotnet publish -c Release -o publish --self-contained true -p:PublishSingleFile=
 - **色温算法**: Tanner Helland 算法 → 三通道乘数，与亮度同一条 ramp 叠加；6600K 三通道全 1.0（退化为纯亮度，向后兼容）
 - **鼠标钩子**: `WH_MOUSE_LL`，仅拦截图标区域滚轮；50ms 节流
 - **弹窗锚定**: `Shell_NotifyIconGetRect` 物理坐标 + 200ms 轮询实时锚定，DPI 变化自动重排
-- **线程安全**: Gamma 更新加锁；钩子回调经 `Invoke` 封送到 UI 线程
-- **性能**: 空闲 CPU ≈ 0%，无 GDI/句柄泄漏
+- **线程安全**: Gamma 更新加锁；钩子回调的重活经 `BeginInvoke` 延迟到 UI 线程队列执行
+- **诊断**: 内置操作日志（`%TEMP%\GammaBrightnessTool_ops.log`）+ `--selftest` 自动化自检；崩溃留痕 `%TEMP%\GammaBrightnessTool_crash.log`
+- **性能**: 空闲 CPU ≈ 0%，无 GDI/句柄泄漏（实测主题循环 GDI 增量为 0）
 
 ## 📁 文件结构
 
@@ -190,8 +197,11 @@ GammaBrightnessTool/
 ├── SettingsForm.cs               # 设置窗口（7 页导航、主题即时刷新）
 ├── HotKeyService.cs              # 全局热键注册（WM_HOTKEY）
 ├── IconGenerator.cs              # 多尺寸托盘图标组装
+├── TrayMenuForm.cs               # 自绘托盘菜单（亮度挡位 / 语言 / 禁用）
 ├── Localization.cs               # 9 语言
 ├── ThemeManager.cs               # 主题解析 + 浮窗调色板
+├── OpLog.cs                      # 操作日志（诊断，%TEMP%）
+├── SelfTest.cs                   # --selftest 自动化自检
 ├── ...                           # StartupManager / SettingsManager / 工具类
 └── Resources/
     ├── tray-icons/               # 多尺寸太阳图标 PNG（黑/白）

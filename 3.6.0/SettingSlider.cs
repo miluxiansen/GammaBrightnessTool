@@ -109,7 +109,12 @@ public sealed class SettingSlider : Control
         if (_format != null)
         {
             text = _format(_value);
-            valueW = Math.Min(Width / 3, TextRenderer.MeasureText(_format(_max), Font).Width + 8);
+            // 预留宽度取"实际绘制文本"与"最大值文本"两者较宽者：只按 _max 测量时，
+            // 若当前值文本更宽（如位数更多/带符号），右端会被裁剪。
+            string maxText = _format(_max);
+            int drawnW = TextRenderer.MeasureText(text, Font).Width;
+            int maxW = TextRenderer.MeasureText(maxText, Font).Width;
+            valueW = Math.Min(Width / 3, Math.Max(drawnW, maxW) + 8);
         }
 
         int barH = Math.Max(4, (int)(Height * 0.18f));

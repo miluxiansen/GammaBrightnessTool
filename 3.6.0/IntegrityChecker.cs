@@ -1,5 +1,4 @@
-﻿using System.Diagnostics;
-using System.Text.Json;
+﻿using System.Text.Json;
 using Microsoft.Win32;
 
 namespace GammaBrightnessTool;
@@ -7,6 +6,7 @@ namespace GammaBrightnessTool;
 /// <summary>
 /// 启动时完整性自检：注册表、用户配置、托盘图标可见性。
 /// 发现问题时自动静默修复，不打扰用户。
+/// 自检的动作/结果写入 OpLog（%TEMP%\GammaBrightnessTool_ops.log）供实测复盘。
 /// </summary>
 public static class IntegrityChecker
 {
@@ -15,11 +15,13 @@ public static class IntegrityChecker
     /// </summary>
     public static void RunCheck()
     {
+        OpLog.Log("[IntegrityChecker] self-check start");
         var settings = SettingsManager.Load();
 
         CheckStartupRegistry(settings);
         CheckSettingsFile();
         CheckTrayIconVisibility();
+        OpLog.Log("[IntegrityChecker] self-check done");
     }
 
     #region 1. 开机自启注册表检查
@@ -46,7 +48,7 @@ public static class IntegrityChecker
         }
         catch (Exception ex)
         {
-            Debug.WriteLine($"[IntegrityChecker] Startup registry check failed: {ex}");
+            OpLog.Log($"[IntegrityChecker] Startup registry check failed: {ex}");
         }
     }
 
@@ -111,12 +113,12 @@ public static class IntegrityChecker
             if (needFix)
             {
                 SettingsManager.Save(settings);
-                Debug.WriteLine("[IntegrityChecker] Fixed invalid settings values");
+                OpLog.Log("[IntegrityChecker] Fixed invalid settings values");
             }
         }
         catch (Exception ex)
         {
-            Debug.WriteLine($"[IntegrityChecker] Settings file corrupted: {ex.Message}");
+            OpLog.Log($"[IntegrityChecker] Settings file corrupted: {ex.Message}");
 
             // 2.3 配置文件损坏：备份旧文件，重建默认配置
             try
@@ -131,7 +133,7 @@ public static class IntegrityChecker
 
             var fresh = new AppSettings();
             SettingsManager.Save(fresh);
-            Debug.WriteLine("[IntegrityChecker] Recreated default settings");
+            OpLog.Log("[IntegrityChecker] Recreated default settings");
         }
     }
 
@@ -151,11 +153,11 @@ public static class IntegrityChecker
             if (key == null)
             {
                 Registry.CurrentUser.CreateSubKey(trayNotifyKey);
-                Debug.WriteLine("[IntegrityChecker] Created TrayNotify registry key");
+                OpLog.Log("[IntegrityChecker] Created TrayNotify registry key");
                 return;
             }
 
-            // 3.2 检查 IconStreams 是否损坏或缺失我们的 GUID
+            // 3.2 检查 IconStreams 是否损坏（数据过短，无法解析）
             var iconStreams = key.GetValue("IconStreams");
             if (iconStreams is byte[] iconData)
             {
@@ -163,14 +165,12 @@ public static class IntegrityChecker
                 {
                     // 数据明显损坏，删除重建
                     DeleteTrayStreams(key);
-                    Debug.WriteLine("[IntegrityChecker] Deleted corrupted IconStreams");
+                    OpLog.Log("[IntegrityChecker] Deleted corrupted IconStreams");
                 }
-                else if (!ContainsGuid(iconData, TrayIconManager.IconGuid))
-                {
-                    // GUID 不在缓存中，删除让 Windows 重建，确保图标出现在隐藏图标菜单列表
-                    DeleteTrayStreams(key);
-                    Debug.WriteLine($"[IntegrityChecker] Deleted IconStreams to re-register GUID: {TrayIconManager.IconGuid}");
-                }
+                // 注意：不得因"GUID 不在缓存中"就整体删除 IconStreams/PastIconsStream——
+                // 这是系统级、所有程序共享的隐藏图标缓存，删除会重置每个软件的托盘
+                // 自定义。图标记录由 Shell 在本程序以 NIF_GUID 注册时自动补建，
+                // 无需自检越权清理。
             }
 
             // 3.3 检查 PastIconsStream
@@ -178,12 +178,12 @@ public static class IntegrityChecker
             if (pastIconsStream is byte[] pastData && pastData.Length < 20)
             {
                 key.DeleteValue("PastIconsStream", throwOnMissingValue: false);
-                Debug.WriteLine("[IntegrityChecker] Deleted corrupted PastIconsStream");
+                OpLog.Log("[IntegrityChecker] Deleted corrupted PastIconsStream");
             }
         }
         catch (Exception ex)
         {
-            Debug.WriteLine($"[IntegrityChecker] Tray icon visibility check failed: {ex}");
+            OpLog.Log($"[IntegrityChecker] Tray icon visibility check failed: {ex}");
         }
     }
 
@@ -191,30 +191,6 @@ public static class IntegrityChecker
     {
         key.DeleteValue("IconStreams", throwOnMissingValue: false);
         key.DeleteValue("PastIconsStream", throwOnMissingValue: false);
-    }
-
-    /// <summary>
-    /// 在 IconStreams 二进制数据中搜索指定的 GUID 字节序列。
-    /// </summary>
-    private static bool ContainsGuid(byte[] data, Guid guid)
-    {
-        byte[] guidBytes = guid.ToByteArray();
-        int limit = data.Length - guidBytes.Length;
-
-        for (int i = 0; i <= limit; i++)
-        {
-            bool match = true;
-            for (int j = 0; j < guidBytes.Length; j++)
-            {
-                if (data[i + j] != guidBytes[j])
-                {
-                    match = false;
-                    break;
-                }
-            }
-            if (match) return true;
-        }
-        return false;
     }
 
     #endregion

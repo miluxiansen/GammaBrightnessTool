@@ -301,6 +301,15 @@ public sealed class SettingsForm : Form
         // the new palette.
         ThemeManager.ThemeChanged += OnThemeChanged;
 
+        // 亮度/色温外部变化（托盘滚轮、挡位、快捷键、计划调度）时即时刷新本页
+        // 下拉与数值显示。只在构造时挂一次、OnFormClosed 退订——订阅绝不能放在
+        // 各页 BuildXxx 里每次重建重复 +=（旧订阅永久累积并持有已 Dispose 控件）。
+        if (Program.Instance != null)
+        {
+            Program.Instance.BrightnessChanged += OnProgramBrightnessChanged;
+            Program.Instance.TemperatureChanged += OnProgramTemperatureChanged;
+        }
+
         // First-show repair: OwnerDraw combo boxes can paint once with
         // un-laid-out bounds while the window is still appearing (their
         // SelectedIndex is set during page construction, before the control
@@ -590,8 +599,11 @@ public sealed class SettingsForm : Form
             var name = asm.GetManifestResourceNames()
                 .FirstOrDefault(n => n.EndsWith("." + file, StringComparison.OrdinalIgnoreCase));
             if (name == null) return null;
+            // Bitmap(Stream) 的流须在 Image 存续期内打开；此处先在流内拷贝独立副本。
             using var stream = asm.GetManifestResourceStream(name);
-            return stream == null ? null : new Bitmap(stream);
+            if (stream == null) return null;
+            using var src = new Bitmap(stream);
+            return new Bitmap(src);
         }
         catch { return null; }
     }
@@ -1013,9 +1025,13 @@ public sealed class SettingsForm : Form
         Invalidate(true);
     }
 
+    private int _rebuildCount;
+
     private void RebuildUi()
     {
         if (IsDisposed) return;
+        _rebuildCount++;
+        OpLog.Log($"[settingsForm] RebuildUi #{_rebuildCount} (lang/theme/DPI/reset)");
         int navIndex = _navSelectedIndex;
         // 重建前记录当前页滚动位置；RebuildUi 会重建全部页面（滚动归零），
         // 末尾以 BeginInvoke 恢复（等新页布局完成、_maxScroll 有效后再设值）。
@@ -1349,6 +1365,9 @@ public sealed class SettingsForm : Form
             Program.Instance?.SetGammaSelfHealEnabled(selfHealToggle.Checked);
         var selfHealGroup = BuildToggleGroup(selfHealToggle);
         var selfHealRow = BuildSettingRow(Localization.Get("GammaSelfHeal"), selfHealGroup);
+        // BuildGeneralPage 每次 RebuildUi 都会重建：旧 ToolTip 先释放
+        // （含原生窗口句柄），否则每次重建泄漏一个。
+        _selfHealTip?.Dispose();
         _selfHealTip = new ToolTip();
         _selfHealTip.SetToolTip(selfHealRow, Localization.Get("GammaSelfHealHint"));
 
@@ -1362,6 +1381,7 @@ public sealed class SettingsForm : Form
             Program.Instance?.SetPauseInFullscreenEnabled(fullscreenToggle.Checked);
         var fullscreenGroup = BuildToggleGroup(fullscreenToggle);
         var fullscreenRow = BuildSettingRow(Localization.Get("PauseInFullscreen"), fullscreenGroup);
+        _fullscreenTip?.Dispose();
         _fullscreenTip = new ToolTip();
         _fullscreenTip.SetToolTip(fullscreenRow, Localization.Get("PauseInFullscreenHint"));
 
@@ -1872,8 +1892,9 @@ public sealed class SettingsForm : Form
             presetCombo.Enabled = colorTempToggle.Checked;
             if (colorTempToggle.Checked) refreshPresetSelection();
         };
-        if (Program.Instance != null)
-            Program.Instance.TemperatureChanged += (_, _) => { refreshPresetSelection(); refreshPresetDisplay(); };
+        // 不再在此处订阅 Program.Instance.TemperatureChanged：构建期订阅在
+        // RebuildUi 重建时只 += 永不 -=，会累积旧闭包并持有已 Dispose 的控件。
+        // 改由构造器 OnProgramTemperatureChanged 单次挂载 + _refreshPreset* 字段转发。
         refreshPresetSelection();
         refreshPresetDisplay();
         _refreshPresetSelection = refreshPresetSelection;
@@ -1939,7 +1960,12 @@ public sealed class SettingsForm : Form
         };
         Action commitRange = () =>
         {
-            if (!float.TryParse(minBox.Text, out float minK) || !float.TryParse(maxBox.Text, out float maxK))
+            // 恒用 InvariantCulture 解析：用户手动输入的 6600.5 在小数点用逗号的
+            // 区域（如德语 de-DE）下，默认区域性解析会失败导致改动被静默丢弃。
+            if (!float.TryParse(minBox.Text, System.Globalization.NumberStyles.Float,
+                    System.Globalization.CultureInfo.InvariantCulture, out float minK)
+                || !float.TryParse(maxBox.Text, System.Globalization.NumberStyles.Float,
+                    System.Globalization.CultureInfo.InvariantCulture, out float maxK))
             {
                 restoreRange();
                 return;
@@ -2645,8 +2671,9 @@ public sealed class SettingsForm : Form
             if (idx >= 0 && idx < levelValues.Length)
                 Program.Instance?.SetBrightnessLevel(levelValues[idx]);
         };
-        if (Program.Instance != null)
-            Program.Instance.BrightnessChanged += (_, _) => { refreshLevelSelection(); refreshLevelDisplay(); };
+        // 不再在此处订阅 Program.Instance.BrightnessChanged：构建期订阅在
+        // RebuildUi 重建时只 += 永不 -=（泄漏 + 旧闭包引用已 Dispose 控件）。
+        // 改由构造器 OnProgramBrightnessChanged 单次挂载 + _refreshLevel* 字段转发。
         refreshLevelSelection();
         refreshLevelDisplay();
         _refreshLevelSelection = refreshLevelSelection;
@@ -3989,6 +4016,25 @@ public sealed class SettingsForm : Form
     private static string RestartStatePath =>
         System.IO.Path.Combine(System.IO.Path.GetTempPath(), "GBT_restart_state.json");
 
+    /// <summary>
+    /// Program.Instance.BrightnessChanged 单次挂载处理（构造时订阅、关闭时退订）。
+    /// 经 _refresh* 字段转发到"当前构建"的页内刷新逻辑，避免持有已 Dispose 的旧控件。
+    /// </summary>
+    private void OnProgramBrightnessChanged(object? sender, float value)
+    {
+        if (IsDisposed) return;
+        _refreshLevelSelection?.Invoke();
+        _refreshLevelDisplay?.Invoke();
+    }
+
+    /// <summary>Program.Instance.TemperatureChanged 单次挂载处理（见 OnProgramBrightnessChanged）。</summary>
+    private void OnProgramTemperatureChanged(object? sender, float value)
+    {
+        if (IsDisposed) return;
+        _refreshPresetSelection?.Invoke();
+        _refreshPresetDisplay?.Invoke();
+    }
+
     protected override void OnShown(EventArgs e)
     {
         base.OnShown(e);
@@ -4038,6 +4084,11 @@ public sealed class SettingsForm : Form
         // recording, the suspended group would otherwise stay disabled
         // until the app restarts.
         Program.Instance?.ResumeAllHotKeys();
+        if (Program.Instance != null)
+        {
+            Program.Instance.BrightnessChanged -= OnProgramBrightnessChanged;
+            Program.Instance.TemperatureChanged -= OnProgramTemperatureChanged;
+        }
         Localization.LanguageChanged -= OnLanguageChanged;
         Microsoft.Win32.SystemEvents.DisplaySettingsChanged -= OnSystemDisplaySettingsChanged;
         _dpiDebounce?.Stop();

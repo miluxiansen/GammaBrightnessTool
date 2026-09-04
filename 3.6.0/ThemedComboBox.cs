@@ -109,7 +109,8 @@ public sealed class ThemedComboBox : Control
     {
         SetStyle(ControlStyles.AllPaintingInWmPaint | ControlStyles.OptimizedDoubleBuffer |
                  ControlStyles.UserPaint | ControlStyles.ResizeRedraw, true);
-        Font = new Font("Segoe UI", 10F);
+        // 复用静态 FixedFont：旧写法每次 DPI 变化 new Font 替换 → 泄漏 GDI 字体。
+        Font = FixedFont;
         FontChanged += (_, _) =>
         {
             var f = Font;

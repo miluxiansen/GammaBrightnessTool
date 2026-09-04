@@ -170,16 +170,22 @@ public sealed class PowerTipForm : Form
 
     private void ApplyRoundedCorners(int radius)
     {
-        var path = new GraphicsPath();
-        int diameter = radius * 2;
-        var rect = new Rectangle(0, 0, Width, Height);
+        // Region(Region) copies the geometry so the path can be disposed here;
+        // the previous Region is released too (the setter does not dispose it).
+        using (var path = new GraphicsPath())
+        {
+            int diameter = radius * 2;
+            var rect = new Rectangle(0, 0, Width, Height);
 
-        path.AddArc(rect.X, rect.Y, diameter, diameter, 180, 90);
-        path.AddArc(rect.Right - diameter, rect.Y, diameter, diameter, 270, 90);
-        path.AddArc(rect.Right - diameter, rect.Bottom - diameter, diameter, diameter, 0, 90);
-        path.AddArc(rect.X, rect.Bottom - diameter, diameter, diameter, 90, 90);
-        path.CloseFigure();
+            path.AddArc(rect.X, rect.Y, diameter, diameter, 180, 90);
+            path.AddArc(rect.Right - diameter, rect.Y, diameter, diameter, 270, 90);
+            path.AddArc(rect.Right - diameter, rect.Bottom - diameter, diameter, diameter, 0, 90);
+            path.AddArc(rect.X, rect.Bottom - diameter, diameter, diameter, 90, 90);
+            path.CloseFigure();
 
-        Region = new Region(path);
+            var oldRegion = Region;
+            Region = new Region(path);
+            oldRegion?.Dispose();
+        }
     }
 }

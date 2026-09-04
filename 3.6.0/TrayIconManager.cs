@@ -524,6 +524,14 @@ public sealed class TrayIconManager : IDisposable
 
     public void UpdateTooltip(float brightness, float temperatureK, bool showTemperature = true)
     {
+        // szTip 是 128 字符定长缓冲（含结尾 NUL）：文本超长时 ByValTStr 封送会抛
+        // ArgumentException（每次滚轮刷新 tooltip 都会失败），这里统一截断到 127。
+        string tip = (showTemperature
+                ? Localization.Get("TrayTooltip", (int)Math.Round(brightness * 100), (int)Math.Round(temperatureK))
+                : Localization.Get("TrayTooltipBrightnessOnly", (int)Math.Round(brightness * 100)))
+            .Replace("\n", "");
+        if (tip.Length > 127) tip = tip.Substring(0, 127);
+
         var nid = new NOTIFYICONDATA
         {
             cbSize = (uint)Marshal.SizeOf<NOTIFYICONDATA>(),
@@ -537,10 +545,7 @@ public sealed class TrayIconManager : IDisposable
             // shell hides the tooltip entirely when an update omits it.
             uFlags = NIF_TIP | NIF_GUID | NIF_SHOWTIP,
             guidItem = IconGuid,
-            szTip = (showTemperature
-                ? Localization.Get("TrayTooltip", (int)Math.Round(brightness * 100), (int)Math.Round(temperatureK))
-                : Localization.Get("TrayTooltipBrightnessOnly", (int)Math.Round(brightness * 100)))
-                .Replace("\n", "")
+            szTip = tip
         };
         Shell_NotifyIcon(NIM_MODIFY, ref nid);
     }

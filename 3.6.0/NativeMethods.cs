@@ -110,7 +110,10 @@ public static class NativeMethods
     public const uint NOTIFYICON_VERSION_4 = 4;
     public const int WM_USER = 0x0400;
 
-    [StructLayout(LayoutKind.Sequential)]
+    // CharSet.Unicode 使 szTip/szInfo/szInfoTitle 按 UTF-16 封送并调用
+    // Shell_NotifyIconW：ANSI 变体在非系统代码页（ACP）下无法表示中文，
+    // 托盘 tooltip/气泡会乱码（中文系统 ACP=936 恰好能显示，其它区域即坏）。
+    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
     public struct NOTIFYICONDATA
     {
         public uint cbSize;
@@ -142,7 +145,7 @@ public static class NativeMethods
         public Guid guidItem;
     }
 
-    [DllImport("shell32.dll", SetLastError = true)]
+    [DllImport("shell32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
     public static extern bool Shell_NotifyIcon(uint dwMessage, ref NOTIFYICONDATA lpData);
 
     [DllImport("shell32.dll", SetLastError = true)]

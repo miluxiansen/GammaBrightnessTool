@@ -81,6 +81,7 @@ public sealed class SystemEventMonitor : IDisposable
     // collected delegate"). This field pins the delegate for the hook's life.
     private WinEventDelegate? _foregroundHookDelegate;
     private System.Windows.Forms.Timer? _fullscreenTimer;
+    private System.Windows.Forms.Timer? _resumeDelayTimer;
     private bool _fullscreenState;
 
     /// <summary>Raised on the UI thread when the system resumes from sleep.</summary>
@@ -127,11 +128,24 @@ public sealed class SystemEventMonitor : IDisposable
     {
         // Defer slightly: right after resume the display stack may not be
         // ready yet. A short delay lets the driver settle before we replay.
-        Resumed?.Invoke();
+        // （旧实现注释声称延迟但立即 Invoke；这里用一次性 Timer 落 400ms。）
+        _resumeDelayTimer?.Stop();
+        _resumeDelayTimer?.Dispose();
+        _resumeDelayTimer = new System.Windows.Forms.Timer { Interval = 400 };
+        _resumeDelayTimer.Tick += (_, _) =>
+        {
+            _resumeDelayTimer?.Stop();
+            _resumeDelayTimer?.Dispose();
+            _resumeDelayTimer = null;
+            Resumed?.Invoke();
+        };
+        _resumeDelayTimer.Start();
+        OpLog.Log("[sys] resume received, re-raise delayed 400ms");
     }
 
     private void OnDisplayChange()
     {
+        OpLog.Log("[sys] display change (WM_DISPLAYCHANGE)");
         DisplayChanged?.Invoke();
     }
 
@@ -249,6 +263,9 @@ public sealed class SystemEventMonitor : IDisposable
         _fullscreenTimer?.Stop();
         _fullscreenTimer?.Dispose();
         _fullscreenTimer = null;
+        _resumeDelayTimer?.Stop();
+        _resumeDelayTimer?.Dispose();
+        _resumeDelayTimer = null;
 
         if (_foregroundHook != IntPtr.Zero)
         {

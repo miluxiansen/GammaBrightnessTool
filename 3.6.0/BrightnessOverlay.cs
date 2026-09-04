@@ -847,22 +847,29 @@ public sealed class BrightnessOverlay : Form
 
     private void ApplyRoundedCorners(int radius)
     {
-        // Create a GraphicsPath for rounded rectangle
-        var path = new System.Drawing.Drawing2D.GraphicsPath();
-        int diameter = radius * 2;
-        var rect = new Rectangle(0, 0, Width, Height);
+        // Create a GraphicsPath for rounded rectangle.
+        // Region(Region) copies the geometry, so the path can be disposed
+        // immediately after; the previous Region is also released here
+        // (the Region property setter does NOT dispose the old value).
+        using (var path = new System.Drawing.Drawing2D.GraphicsPath())
+        {
+            int diameter = radius * 2;
+            var rect = new Rectangle(0, 0, Width, Height);
 
-        // Top-left arc
-        path.AddArc(rect.X, rect.Y, diameter, diameter, 180, 90);
-        // Top-right arc
-        path.AddArc(rect.Right - diameter, rect.Y, diameter, diameter, 270, 90);
-        // Bottom-right arc
-        path.AddArc(rect.Right - diameter, rect.Bottom - diameter, diameter, diameter, 0, 90);
-        // Bottom-left arc
-        path.AddArc(rect.X, rect.Bottom - diameter, diameter, diameter, 90, 90);
-        path.CloseFigure();
+            // Top-left arc
+            path.AddArc(rect.X, rect.Y, diameter, diameter, 180, 90);
+            // Top-right arc
+            path.AddArc(rect.Right - diameter, rect.Y, diameter, diameter, 270, 90);
+            // Bottom-right arc
+            path.AddArc(rect.Right - diameter, rect.Bottom - diameter, diameter, diameter, 0, 90);
+            // Bottom-left arc
+            path.AddArc(rect.X, rect.Bottom - diameter, diameter, diameter, 90, 90);
+            path.CloseFigure();
 
-        Region = new Region(path);
+            var oldRegion = Region;
+            Region = new Region(path);
+            oldRegion?.Dispose();
+        }
     }
 
     /// <summary>

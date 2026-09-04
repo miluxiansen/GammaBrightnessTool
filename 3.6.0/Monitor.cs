@@ -314,7 +314,6 @@ public sealed class DeviceContext : IDisposable
     public string MonitorEdidId { get; } = "";
 
     private IntPtr _handle;
-    private GammaRamp _originalRamp;
     private bool _disposed;
 
     // Monotonic counter driving the cache-breaking noise. A counter (not a
@@ -330,7 +329,6 @@ public sealed class DeviceContext : IDisposable
     {
         _handle = handle;
         MonitorEdidId = monitorEdidId;
-        GetDeviceGammaRamp(_handle, ref _originalRamp);
     }
 
     /// <summary>
@@ -400,16 +398,23 @@ public sealed class DeviceContext : IDisposable
             }
         }
 
-        return SetDeviceGammaRamp(_handle, ref modifiedRamp);
+        bool ok = SetDeviceGammaRamp(_handle, ref modifiedRamp);
+        if (!ok)
+        {
+            OpLog.LogThrottled("gamma.writefail",
+                $"[gamma] SetDeviceGammaRamp FAILED hdc={_handle} edid='{MonitorEdidId}' err={Marshal.GetLastWin32Error()}",
+                1000);
+        }
+        return ok;
     }
 
     /// <summary>
     /// Resets gamma to a standard 100% linear ramp.
     ///
-    /// NOTE: we deliberately do NOT restore the ramp captured at startup
-    /// (_originalRamp). If a previous run exited abnormally (crash, forced
-    /// kill), the system gamma may be stuck at a leftover value; restoring
-    /// that leftover would make the screen look dimmer after every exit.
+    /// NOTE: we deliberately do NOT try to restore any ramp captured at
+    /// startup. If a previous run exited abnormally (crash, forced kill),
+    /// the system gamma may be stuck at a leftover value; restoring that
+    /// leftover would make the screen look dimmer after every exit.
     /// A fresh linear 100% ramp is the correct "normal" state.
     /// </summary>
     public bool ResetGamma()

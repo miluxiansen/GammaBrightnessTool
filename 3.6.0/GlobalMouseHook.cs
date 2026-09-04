@@ -103,6 +103,7 @@ public sealed class GlobalMouseHook : IDisposable
         }
 
         _mouseLeaveTimer.Start();
+        OpLog.Log("[hook] global mouse hook installed (WH_MOUSE_LL)");
     }
 
     private IntPtr MouseHookCallback(int nCode, IntPtr wParam, IntPtr lParam)
@@ -166,25 +167,38 @@ public sealed class GlobalMouseHook : IDisposable
 
                             float step = delta > 0 ? _gamma.StepSize : -_gamma.StepSize;
 
+                            bool popupShown = _popup != null && _popup.IsShown;
+                            OpLog.LogThrottled("wheel",
+                                $"[wheel] delta={delta} step={step:0.00} popupShown={popupShown} " +
+                                $"brightness={_gamma.CurrentBrightness * 100:0.#}% temp={_gamma.CurrentTemperature:0}K",
+                                200);
+
                             // If the left-click popup is open, wheel over the tray
                             // icon adjusts the popup's slider/value directly (popup
                             // stays open, no OSD). Otherwise use the wheel OSD flow.
-                            if (_popup != null && _popup.IsShown)
+                            Action work;
+                            if (popupShown)
                             {
-                                _popup.AdjustByWheel(delta);
+                                int wheelDelta = delta;
+                                work = () => _popup.AdjustByWheel(wheelDelta);
                             }
                             else
                             {
-                                _gamma.AdjustBrightness(step);
-                                OnUserAdjustment?.Invoke();
-                                // OSD can be disabled via the setting (ShowOverlay).
-                                if (IsOverlayEnabled?.Invoke() != false)
+                                float adjStep = step;
+                                work = () =>
                                 {
-                                ShowOverlay?.Invoke();
-                                }
-                                _trayIcon.UpdateTooltip(_gamma.CurrentBrightness, _gamma.CurrentTemperature,
-                                    IsColorTemperatureEnabled?.Invoke() ?? false);
+                                    _gamma.AdjustBrightness(adjStep);
+                                    OnUserAdjustment?.Invoke();
+                                    // OSD can be disabled via the setting (ShowOverlay).
+                                    if (IsOverlayEnabled?.Invoke() != false)
+                                    {
+                                        ShowOverlay?.Invoke();
+                                    }
+                                    _trayIcon.UpdateTooltip(_gamma.CurrentBrightness, _gamma.CurrentTemperature,
+                                        IsColorTemperatureEnabled?.Invoke() ?? false);
+                                };
                             }
+                            RunOnUiThread(work);
                         }
                     }
 
@@ -198,11 +212,37 @@ public sealed class GlobalMouseHook : IDisposable
         return CallNextHookEx(_hookHandle, nCode, wParam, lParam);
     }
 
+    /// <summary>
+    /// 把重活（gamma 写屏、OSD 显示、tooltip 刷新）排到 UI 线程消息队列尾部。
+    /// 低层钩子回调虽运行在安装线程的消息泵上，但若在回调内同步执行这些操作，
+    /// 会长时间占住钩子调用（Windows 对低层钩子有超时，超时会被静默卸载——
+    /// 表现为托盘滚轮突然失灵）。消息泵可用时用 BeginInvoke 异步执行，
+    /// 不可用（OSD 窗体尚未建句柄/退出竞态）则退化为同步执行。
+    /// </summary>
+    private void RunOnUiThread(Action work)
+    {
+        bool queued = false;
+        try
+        {
+            if (_overlay.IsHandleCreated)
+            {
+                _overlay.BeginInvoke(work);
+                queued = true;
+            }
+        }
+        catch
+        {
+            // 退出竞态：句柄查询/投递失败时退化到同步执行（等价于旧行为）。
+        }
+        if (!queued) work();
+    }
+
     public void Uninstall()
     {
         _mouseLeaveTimer?.Stop();
         if (_hookHandle != IntPtr.Zero)
         {
+            OpLog.Log("[hook] global mouse hook uninstalled");
             UnhookWindowsHookEx(_hookHandle);
             _hookHandle = IntPtr.Zero;
         }

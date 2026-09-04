@@ -24,6 +24,9 @@ public sealed class HotKeyCaptureBox : RoundedTextBox
     /// <summary>Raised when recording starts / a key is captured / commit / cancel.</summary>
     public event EventHandler? CaptureStateChanged;
 
+    // 固定 10pt 字体：DPI 缩放会把 Font 放大，FontChanged 拉回此实例。
+    private static readonly Font FixedFont = new Font("Segoe UI", 10F);
+
     public bool IsCapturing => _capturing;
 
     /// <summary>True after Delete/Backspace/Escape cleared the combo (confirm = unbind).</summary>
@@ -48,14 +51,15 @@ public sealed class HotKeyCaptureBox : RoundedTextBox
     {
         TextAlign = HorizontalAlignment.Center;
         Cursor = Cursors.Hand;
-        Font = new Font("Segoe UI", 10F);
+        Font = FixedFont;
         // DPI 变化时 WinForms 会把显式设置的 Point 字体缩放（GetScaledFont，
         // 10pt→12.5pt @125%），导致框内快捷键文字随 DPI 变大/变小；
         // FontChanged 处理器把字体拉回固定 10pt，与设置页其他文字一致。
+        // 复用静态实例而非每次 new Font（旧写法每次 DPI 变化泄漏一个 GDI 字体）。
         FontChanged += (_, _) =>
         {
             var f = Font;
-            if (f.Size != 10f || f.Unit != GraphicsUnit.Point) Font = new Font("Segoe UI", 10F);
+            if (f.Size != FixedFont.Size || f.Unit != FixedFont.Unit) Font = FixedFont;
         };
     }
 

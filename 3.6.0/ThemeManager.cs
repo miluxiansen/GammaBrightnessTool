@@ -14,7 +14,11 @@ public static class ThemeManager
     private static ThemeMode _mode = ThemeMode.System;
     private static ThemeMode _popupMode = ThemeMode.System;
     private static bool _watching;
-    private static System.Threading.Timer? _pollTimer;
+    // 轮询用 WinForms Timer（UI 线程消息泵触发），而不是 System.Threading.Timer：
+    // 后者在线程池线程回调里直接 raise 主题事件，订阅方（窗体/托盘/弹窗）若在
+    // 处理时触碰控件即跨线程异常。EnsureWatching 的所有调用方都在 UI 线程
+    // （MainController 启动与托盘/菜单回调），因此 Tick 必在 UI 线程执行。
+    private static System.Windows.Forms.Timer? _pollTimer;
     private static int _lastSystemDark = -1; // -1 = unknown yet
 
     /// <summary>The user's theme choice as stored in settings.</summary>
@@ -57,6 +61,7 @@ public static class ThemeManager
         bool newDark = IsDark;
         if (newDark != oldDark)
         {
+            OpLog.Log($"[theme] Apply(mode={mode}) effective dark {oldDark}->{newDark}");
             ThemeChanged?.Invoke(null, EventArgs.Empty);
         }
     }
@@ -76,6 +81,7 @@ public static class ThemeManager
         bool newDark = PopupIsDark;
         if (newDark != oldDark)
         {
+            OpLog.Log($"[theme] ApplyPopupTheme(mode={mode}) popup dark {oldDark}->{newDark}");
             PopupThemeChanged?.Invoke(null, EventArgs.Empty);
         }
     }
@@ -95,10 +101,13 @@ public static class ThemeManager
             // Rare in services/session-0; polling below still covers us.
         }
 
-        // Channel 2: poll the registry every 500 ms. Covers switches that
-        // do not broadcast (direct registry edits, some GPO/remote flows)
-        // and is fully reliable regardless of message pump state.
-        _pollTimer = new System.Threading.Timer(_ => PollSystemTheme(), null, 500, 500);
+        // Channel 2: poll the registry every 500 ms on the UI thread. Covers
+        // switches that do not broadcast (direct registry edits, some
+        // GPO/remote flows). WinForms Timer runs on the creating (UI) thread's
+        // message loop, so the raised events below are always on the UI thread.
+        _pollTimer = new System.Windows.Forms.Timer { Interval = 500 };
+        _pollTimer.Tick += (_, _) => PollSystemTheme();
+        _pollTimer.Start();
     }
 
     private static void PollSystemTheme()
@@ -107,6 +116,7 @@ public static class ThemeManager
         int prev = Interlocked.Exchange(ref _lastSystemDark, current);
         if (prev != -1 && prev != current)
         {
+            OpLog.Log($"[theme] system dark flip {prev}->{current} (poll detected)");
             // Always notify OS-theme-bound listeners (tray icon).
             SystemThemeChanged?.Invoke(null, EventArgs.Empty);
             // Rebuild the in-app UI only when following the system theme.

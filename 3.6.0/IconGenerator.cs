@@ -266,9 +266,11 @@ public static class IconGenerator
         var match = asm.GetManifestResourceNames()
             .FirstOrDefault(n => n.EndsWith("." + fileName, StringComparison.OrdinalIgnoreCase));
         if (match == null) return null;
+        // Bitmap(Stream) 的流须在 Image 存续期内打开；此处先在流内拷贝独立副本。
         using var stream = asm.GetManifestResourceStream(match);
         if (stream == null) return null;
-        return new Bitmap(stream);
+        using var src = new Bitmap(stream);
+        return new Bitmap(src);
     }
 
     /// <summary>

@@ -113,7 +113,13 @@ public sealed class ToggleSwitch : Control
     }
     private void StartAnimation()
     {
-        _animTimer?.Stop();
+        // 替换旧的动画计时器时必须先释放（仅 Stop 会把旧 Timer 留在字段外泄漏）。
+        if (_animTimer != null)
+        {
+            _animTimer.Stop();
+            _animTimer.Dispose();
+            _animTimer = null;
+        }
         _animTimer = new System.Windows.Forms.Timer { Interval = 16 };
         _animTimer.Tick += (_, _) =>
         {
@@ -129,6 +135,22 @@ public sealed class ToggleSwitch : Control
             Invalidate();
         };
         _animTimer.Start();
+    }
+
+    protected override void Dispose(bool disposing)
+    {
+        if (disposing)
+        {
+            // 控件可能在动画途中被销毁：计时器必须停掉并释放，否则其 Tick
+            // 仍会在已 Dispose 的控件上触发 Invalidate → ObjectDisposedException；
+            // _knobIcon 位图一并释放。
+            _animTimer?.Stop();
+            _animTimer?.Dispose();
+            _animTimer = null;
+            _knobIcon?.Dispose();
+            _knobIcon = null;
+        }
+        base.Dispose(disposing);
     }
 
     protected override void OnPaint(PaintEventArgs e)
@@ -231,8 +253,11 @@ public sealed class ToggleSwitch : Control
         var name = asm.GetManifestResourceNames()
             .FirstOrDefault(n => n.EndsWith("." + suffix, StringComparison.OrdinalIgnoreCase));
         if (name == null) return null;
+        // Bitmap(Stream) 的流须在 Image 存续期内打开；此处先在流内拷贝独立副本。
         using var stream = asm.GetManifestResourceStream(name);
-        return stream == null ? null : new Bitmap(stream);
+        if (stream == null) return null;
+        using var src = new Bitmap(stream);
+        return new Bitmap(src);
     }
 
     private static GraphicsPath RoundedRect(Rectangle bounds, int radius)

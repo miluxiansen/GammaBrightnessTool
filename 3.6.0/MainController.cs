@@ -870,6 +870,7 @@ public sealed class MainController : IDisposable
 		string text = Path.Combine(path, "unins000.exe");
 		if (File.Exists(text))
 		{
+			OpLog.Log($"[uninstall] installed version detected ({text}) -> run silent uninstaller (AppData preserved)");
 			ProcessStartInfo startInfo = new ProcessStartInfo
 			{
 				FileName = text,
@@ -881,8 +882,15 @@ public sealed class MainController : IDisposable
 			Application.Exit();
 			return;
 		}
+		OpLog.Log($"[uninstall] green version ({executablePath}) -> temp batch cleanup (exe-dir only, AppData preserved)");
 		string text2 = Path.Combine(Path.GetTempPath(), "uninstall_" + fileName + ".bat");
-		string contents = $"\r\n@echo off\r\nchcp 65001 >nul\r\ntimeout /t 2 /nobreak >nul\r\nreg delete \"HKCU\\Software\\Classes\\Local Settings\\Software\\Microsoft\\Windows\\CurrentVersion\\TrayNotify\" /v IconStreams /f 2>nul\r\nreg delete \"HKCU\\Software\\Classes\\Local Settings\\Software\\Microsoft\\Windows\\CurrentVersion\\TrayNotify\" /v PastIconsStream /f 2>nul\r\nrmdir /s /q \"{Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "GammaBrightnessTool")}\" 2>nul\r\ndel /f /q \"{Path.Combine(path, "settings.json")}\" 2>nul\r\ndel /f /q \"{Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory), "Gamma Brightness Tool.lnk")}\" 2>nul\r\ndel /f /q \"{Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory), "GammaBrightnessTool.lnk")}\" 2>nul\r\ndel /f /q \"{executablePath}\" 2>nul\r\ndel /f /q \"{text2}\" 2>nul\r\n";
+		// 绿色版自卸载：只清自身残留，绝不触碰共享数据与系统级托盘缓存——
+		//  * 不删 %APPDATA%\GammaBrightnessTool（settings.json 等与安装版共享，
+		//    安装版卸载器明确保留；绿色版删它会把安装版配置一起清掉）；
+		//  * 不 reg delete TrayNotify 的 IconStreams/PastIconsStream（全系统共享的
+		//    旧式托盘历史，清理会重置所有软件的托盘图标自定义，策略同 Setup.iss）。
+		// 仅删除：exe 旁的旧式绿色版配置（Load 时已迁移进 AppData）、桌面快捷方式与自身。
+		string contents = $"\r\n@echo off\r\nchcp 65001 >nul\r\ntimeout /t 2 /nobreak >nul\r\ndel /f /q \"{Path.Combine(path, "settings.json")}\" 2>nul\r\ndel /f /q \"{Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory), "Gamma Brightness Tool.lnk")}\" 2>nul\r\ndel /f /q \"{Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory), "GammaBrightnessTool.lnk")}\" 2>nul\r\ndel /f /q \"{executablePath}\" 2>nul\r\ndel /f /q \"{text2}\" 2>nul\r\n";
 		File.WriteAllText(text2, contents);
 		ProcessStartInfo startInfo2 = new ProcessStartInfo
 		{
@@ -1134,7 +1142,10 @@ public sealed class MainController : IDisposable
 				_gamma.SetBrightness(brightness);
 				SaveSettings();
 			}
-			ShowOverlayForDisplays();
+			// 挡位切换不弹 OSD：平滑开启时 OSD 此刻读到的是动画起点旧值
+			// （如切 75% 却显示 100%），随后又自行消失，观感突兀
+			// （用户 2026-09-04 反馈）。挡位选择本身有下拉/设置窗反馈，
+			// 无需 OSD 确认；滚轮/热键等实时调节路径仍照常显示 OSD。
 			_trayIcon?.UpdateTooltip(brightness, _gamma.CurrentTemperature, _settings?.ColorTemperatureEnabled ?? false);
 			this.BrightnessChanged?.Invoke(this, _gamma?.CurrentBrightness ?? brightness);
 		}
