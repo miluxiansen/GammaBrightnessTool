@@ -1022,6 +1022,19 @@ public static class Localization
             [Language.Russian] = "ОК",
             [Language.System] = ""
         },
+        ["RenameTooLong"] = new()
+        {
+            [Language.SimplifiedChinese] = "名称过长，最多 15 个字符",
+            [Language.TraditionalChinese] = "名稱過長，最多 15 個字元",
+            [Language.English] = "Name too long (max 15 characters)",
+            [Language.Japanese] = "名前が長すぎます（最大15文字）",
+            [Language.Korean] = "이름이 너무 깁니다 (최대 15자)",
+            [Language.German] = "Name zu lang (max. 15 Zeichen)",
+            [Language.French] = "Nom trop long (15 caractères max)",
+            [Language.Spanish] = "Nombre demasiado largo (máx. 15)",
+            [Language.Russian] = "Имя слишком длинное (макс. 15)",
+            [Language.System] = ""
+        },
         ["MonitorsInfo"] = new()
         {
             [Language.SimplifiedChinese] = "显示器信息",

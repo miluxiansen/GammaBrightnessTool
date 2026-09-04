@@ -45,6 +45,8 @@
 - Green-version uninstall no longer deletes the shared `%APPDATA%` config; switching brightness presets no longer flashes a stale OSD
 - Fixed a crash when plugging/unplugging a display while independent mode was on (auto-restart raced the old process's tray GUID slot — the tray `NIM_DELETE` now uses `NIF_GUID`; startup stays `NIM_ADD`-first with retry and only deletes as a last resort)
 - Monitor-rename input now rolls back to the last committed name when focus is lost without confirming (same behavior as the color-range fields)
+- Reset settings and importing a config now fully re-sync the per-display runtime (independent-mode toggle, per-display enable/freeze, custom names, popup row mode) — no stale "frozen" display or single-row popup after reset/import
+- Monitor rename now applies immediately to the popup/OSD/monitor-info without restarting, and is capped at 15 characters with an over-length prompt
 
 ---
 
@@ -85,6 +87,8 @@
 - 绿色版卸载不再删除共享 %APPDATA% 配置；切换亮度挡位不再弹旧值 OSD
 - 修复独立控制开启时插拔显示器导致的崩溃（自动重启撞上旧进程托盘 GUID 槽位——托盘 NIM_DELETE 现带 NIF_GUID；启动保持纯 ADD+重试，仅最后手段才删除）
 - 显示器重命名输入框：未按确认就失焦时自动还原为上次提交的名字（与色温范围输入框行为一致）
+- 重置设置与导入配置现在会整体同步"逐屏运行时"（独立开关、逐屏启用/冻结、自定义名、弹窗行模式）——不再残留"冻结屏"或导入后弹窗仍是单行
+- 显示器重命名立即生效（弹窗/OSD/显示器信息无需重启），且限制 15 字符、超长弹出提示
 
 ---
 *Full changelog details and technical notes: see `3.6.0/` source folder.*

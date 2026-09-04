@@ -3487,7 +3487,9 @@ public sealed class SettingsForm : Form
                 // 与快捷键页 HotKeyCaptureBox 一致：文字水平居中，避免短名称
                 // 在宽框里贴左。TextBox 默认 AutoSize=true，实际高度由字体决定
                 // （10F≈32px@175%），下方布局按实际高垂直居中，不设 Height。
-                TextAlign = HorizontalAlignment.Center
+                TextAlign = HorizontalAlignment.Center,
+                // 名称上限 15 字符（防自定义名挤占右侧信息列）
+                MaxLength = 15
             };
             editBox.ApplyTheme(InputBg, TextMain);
             editBox.SetParentBackground(BgInner);
@@ -3496,11 +3498,39 @@ public sealed class SettingsForm : Form
             // 提交的名字"（与色温范围输入框同语义）。提交成功后基准同步更新。
             string committedName = currentName;
             bool renameArmed = false;
+            DateTime lastTooLongWarnUtc = DateTime.MinValue;
             void CommitRename()
             {
-                controller?.SetDisplayName(id, editBox.Text);
-                committedName = editBox.Text;
+                string trimmed = editBox.Text?.Trim() ?? "";
+                if (trimmed.Length > 15)
+                {
+                    MessageBox.Show(Localization.Get("RenameTooLong"), Localization.Get("Error"),
+                        MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    editBox.Text = committedName;
+                    return;
+                }
+                controller?.SetDisplayName(id, trimmed.Length == 0 ? null : trimmed);
+                committedName = trimmed.Length == 0 ? currentName : trimmed;
+                // 立即生效：弹窗/OSD 行名由 MainController 实时推送；此处再重建
+                // 显示器页让"信息/重命名"列表同步显示新名（无需重启）。
+                if (!IsDisposed && Visible) BeginInvoke((Action)RebuildUi);
             }
+            // 键入到 15 字符上限后再输入字母 → 提示"名称过长"并拦截该字符
+            // （限流：1.2s 内只弹一次，避免连按刷屏）。
+            editBox.KeyPress += (_, e) =>
+            {
+                if (char.IsControl(e.KeyChar)) return;
+                if (editBox.TextLength >= 15)
+                {
+                    e.Handled = true;
+                    if ((DateTime.UtcNow - lastTooLongWarnUtc).TotalSeconds > 1.2)
+                    {
+                        lastTooLongWarnUtc = DateTime.UtcNow;
+                        MessageBox.Show(Localization.Get("RenameTooLong"), Localization.Get("Error"),
+                            MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    }
+                }
+            };
 
             var saveBtn = new RoundedButton
             {
@@ -3591,7 +3621,10 @@ public sealed class SettingsForm : Form
         for (int i = ids.Count - 1; i >= 0; i--)
         {
             var id = ids[i];
-            string name = controller?.GetDisplaySystemName(id) ?? id;
+            // 左列：原厂显示名（不含自定义改名）
+            string name = controller?.GetDisplayOriginalName(id) ?? id;
+            // 中间留白：显示"改名后的名字"（小字号），无改名则留空
+            string? customName = controller?.GetDisplayName(id);
 
             // 副文本：只显示缩放比与分辨率（不显示 EDID/亮度/色温等内部信息）
             string info;
@@ -3604,17 +3637,44 @@ public sealed class SettingsForm : Form
                 info = "—";
             }
 
+            // 右内容区：左=自定义名（小字），右=分辨率/缩放（右对齐）
+            var content = new Panel
+            {
+                Width = (int)(230 * _dpiScale),
+                Height = (int)(24 * _dpiScale),
+                BackColor = BgInner
+            };
+            bool showCustom = !string.IsNullOrWhiteSpace(customName)
+                              && !string.Equals(customName, name, StringComparison.OrdinalIgnoreCase);
+            var customFont = new Font("Segoe UI", 8.5F);
+            var customLabel = new ThemedLabel
+            {
+                Text = showCustom ? customName! : "",
+                Font = customFont,
+                AutoSize = false,
+                // 文本宽度实测 + 右间距：固定宽度的 Dock=Left 会自动撑满整行高度，
+                // 文字 MiddleLeft 天然垂直居中（避免 AutoSize+Dock 的高度怪异）。
+                Width = showCustom
+                    ? System.Windows.Forms.TextRenderer.MeasureText(customName!, customFont).Width
+                        + (int)(10 * _dpiScale)
+                    : 0,
+                Dock = DockStyle.Left,
+                TextAlign = ContentAlignment.MiddleLeft,
+                ForeColor = TextMain
+            };
             var infoLabel = new ThemedLabel
             {
                 Text = info,
                 Font = new Font("Segoe UI", 8.5F),
                 AutoSize = false,
+                Dock = DockStyle.Fill,
                 TextAlign = ContentAlignment.MiddleRight,
-                ForeColor = TextSub,
-                Width = (int)(230 * _dpiScale)
+                ForeColor = TextSub
             };
+            content.Controls.Add(infoLabel);      // Fill 先加
+            content.Controls.Add(customLabel);    // 后加的 Dock.Left 占左并撑满高度
 
-            var row = BuildSettingRow(name, infoLabel);
+            var row = BuildSettingRow(name, content);
             row.Dock = DockStyle.Top;
             body.Controls.Add(row);
         }

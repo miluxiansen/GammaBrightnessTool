@@ -1050,14 +1050,21 @@ public sealed class MainController : IDisposable
 			StartFullscreenTransition(_fullscreenBrightnessBefore, _fullscreenTemperatureBefore, exit: true);
 		}
 		RegisterHotkeys();
-		_gamma?.SetBrightness(_settings.LastBrightness);
-		if (_settings.ColorTemperatureEnabled)
+		// 独立控制随导入配置同步到运行时（gamma/弹窗行模式），避免"总开关显示开、
+		// 弹窗仍是单行"的脱节；关闭状态则统一写屏。
+		if (_settings.PerMonitorEnabled)
 		{
-			_gamma?.SetTemperature(_settings.LastTemperature);
+			ApplyPerMonitorFromSettings();
 		}
 		else
 		{
-			_gamma?.SetTemperature(6600f);
+			_gamma?.SetBrightness(_settings.LastBrightness);
+			_gamma?.SetTemperature(_settings.ColorTemperatureEnabled ? _settings.LastTemperature : 6600f);
+			if (_popup != null)
+			{
+				_popup.PerMonitorEnabled = false;
+				_popup.SetDisplays(BuildDisplayRows());
+			}
 		}
 		_trayIcon?.UpdateTooltip(_gamma?.CurrentBrightness ?? 1f, _gamma?.CurrentTemperature ?? 6600f, _settings?.ColorTemperatureEnabled ?? false);
 		ApplySolarScheduler();
@@ -1431,13 +1438,33 @@ public sealed class MainController : IDisposable
 			}
 			_settings.MonitorNames = dictionary;
 			SettingsManager.Save(_settings);
-			_popup?.RefreshDisplayNames();
+			// 立即生效：用最新名称重建弹窗行数据（重命名无需重启即反映到
+			// 弹窗/OSD；OSD 行在每次显示时实时取名）。旧 RefreshDisplayNames
+			// 只刷新缓存副本、不会读取新名，故改为整组 SetDisplays。
+			if (_popup != null) _popup.SetDisplays(BuildDisplayRows());
 		}
 	}
 
 	public string GetDisplaySystemName(string edidId)
 	{
 		return GetDisplayNameFor(edidId);
+	}
+
+	/// <summary>原始显示名（不含自定义改名）：EDID 友好名 → 型号段 → ID。
+	/// 供"显示器信息"列表左列展示原厂名，与中间的自定义名对照。</summary>
+	public string GetDisplayOriginalName(string edidId)
+	{
+		string? friendly = Monitor.GetEdidFriendlyName(edidId);
+		if (!string.IsNullOrWhiteSpace(friendly))
+		{
+			return friendly;
+		}
+		string[] array = edidId.Split('\\');
+		if (array.Length >= 2 && !string.IsNullOrWhiteSpace(array[1]))
+		{
+			return array[1];
+		}
+		return edidId;
 	}
 
 	public float GetTemperatureStepSize()
@@ -1901,6 +1928,43 @@ public sealed class MainController : IDisposable
 			{
 				_gamma.SetDisplayEnabled(displayId, value.Enabled);
 			}
+		}
+	}
+
+	/// <summary>
+	/// 按当前 _settings 把"显示器独立控制"整体同步到运行时（gamma/弹窗），
+	/// 语义与启动路径一致（见 Initialize 中 PerMonitorEnabled 分支）：
+	///  * 开：播种统一种子 → gamma 进独立模式 → 恢复逐屏记忆（亮度/色温/停用）；
+	///  * 关：gamma 回统一模式，全部屏以种子值播种启用。
+	/// 用于"重置设置"与"导入设置"之后，避免出现 settings 与运行时/弹窗脱节
+	/// （例如导入了独立开启的配置，但弹窗仍是单行；重置后残留停用屏等）。
+	/// </summary>
+	private void ApplyPerMonitorFromSettings()
+	{
+		if (_settings == null || _gamma == null) return;
+		float entryB = _settings.LastBrightness;
+		float entryT = _settings.ColorTemperatureEnabled ? _settings.LastTemperature : 6600f;
+		_perMonitorEntryBrightness = entryB;
+		_perMonitorEntryTemperature = entryT;
+		if (_settings.PerMonitorEnabled)
+		{
+			_gamma.SetBrightness(entryB);
+			_gamma.SetTemperature(entryT);
+			_gamma.PerMonitorEnabled = true;
+			_gamma.ReconcileDisplayStates();
+			RestoreSavedDisplayStates();
+		}
+		else
+		{
+			_gamma.PerMonitorEnabled = false;
+			_gamma.ResetDisplayStates(entryB, entryT);
+			_gamma.SetBrightness(entryB);
+			_gamma.SetTemperature(entryT);
+		}
+		if (_popup != null)
+		{
+			_popup.PerMonitorEnabled = _settings.PerMonitorEnabled;
+			_popup.SetDisplays(BuildDisplayRows());
 		}
 	}
 
@@ -2409,6 +2473,14 @@ public sealed class MainController : IDisposable
 				_popup.MaxTemperature = _settings.MaxTemperature;
 			}
 			RegisterHotkeys();
+			// 显示器相关一并还原（此前漏了：重置后若残留"停用/冻结"的屏，会永远
+			// 不响应调节，显示器页看起来"失灵"）。独立控制关、逐屏状态与自定义名
+			// 清空后整体同步运行时（统一模式 + 100%/6600K 播种全部屏）。
+			if (_unifyActive) CancelUnifyAnimation();
+			_settings.PerMonitorEnabled = false;
+			_settings.MonitorStates?.Clear();
+			_settings.MonitorNames?.Clear();
+			ApplyPerMonitorFromSettings();
 			bool brightnessSmooth = _settings.BrightnessSmooth;
 			bool temperatureSmooth = _settings.TemperatureSmooth;
 			if (brightnessSmooth || temperatureSmooth)
