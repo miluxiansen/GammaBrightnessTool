@@ -22,19 +22,17 @@ A Windows screen brightness & color temperature adjustment tool built on .NET 8 
 
 ### ✨ Feature evolution
 
-| Feature | 3.1.0 | 3.2.0 | 3.3.0 | 3.4.0 | 3.5.0 | 3.6.0 |
-|---------|:-----:|:-----:|:-----:|:-----:|:-----:|:-----:|
-| Settings window | ✔ | ✔ | ✔ | ✔ | ✔ | ✔ |
-| Theme switching | ✔ | ✔ | ✔ | ✔ | ✔ | ✔ |
-| Global hotkeys | — | ✔ | ✔ | ✔ | ✔ | ✔ |
-| Color temperature | — | — | ✔ | ✔ | ✔ | ✔ |
-| Time-based adjustment | — | — | — | ✔ | ✔ | ✔ |
-| Gamma self-heal (sleep/hot-plug) | — | — | — | — | ✔ | ✔ |
-| Pause in fullscreen | — | — | — | — | ✔ | ✔ |
-| Feature off (tray menu) | — | — | — | — | ✔ | ✔ |
-| Settings export/import | — | — | — | — | ✔ | ✔ |
-| Multi-monitor independent control | — | — | — | — | — | ✔ |
-| Popup / OSD opacity | — | — | — | — | — | ✔ |
+| Feature | 3.2.0 | 3.3.0 | 3.4.0 | 3.5.0 | 3.6.0 |
+|---------|:-----:|:-----:|:-----:|:-----:|:-----:|
+| Global hotkeys | ✔ | ✔ | ✔ | ✔ | ✔ |
+| Color temperature | — | ✔ | ✔ | ✔ | ✔ |
+| Time-based adjustment | — | — | ✔ | ✔ | ✔ |
+| Gamma self-heal (sleep/hot-plug) | — | — | — | ✔ | ✔ |
+| Pause in fullscreen | — | — | — | ✔ | ✔ |
+| Feature off (tray menu) | — | — | — | ✔ | ✔ |
+| Settings export/import | — | — | — | ✔ | ✔ |
+| Multi-monitor independent control | — | — | — | — | ✔ |
+| Popup / OSD opacity | — | — | — | — | ✔ |
 
 ## 📸 Screenshots
 
@@ -88,19 +86,17 @@ MIT License © 2026 GammaBrightnessTool Contributors. See [3.5.0/LICENSE](3.5.0/
 
 ### ✨ 功能演进
 
-| 功能 | 3.1.0 | 3.2.0 | 3.3.0 | 3.4.0 | 3.5.0 | 3.6.0 |
-|------|:-----:|:-----:|:-----:|:-----:|:-----:|:-----:|
-| 设置窗口 | ✔ | ✔ | ✔ | ✔ | ✔ | ✔ |
-| 主题切换 | ✔ | ✔ | ✔ | ✔ | ✔ | ✔ |
-| 全局快捷键 | — | ✔ | ✔ | ✔ | ✔ | ✔ |
-| 色温调节 | — | — | ✔ | ✔ | ✔ | ✔ |
-| 时间调整（日出日落） | — | — | — | ✔ | ✔ | ✔ |
-| gamma 自愈（唤醒/热插拔） | — | — | — | — | ✔ | ✔ |
-| 全屏自动暂停 | — | — | — | — | ✔ | ✔ |
-| 功能停用（托盘菜单） | — | — | — | — | ✔ | ✔ |
-| 设置导出/导入 | — | — | — | — | ✔ | ✔ |
-| 多显示器独立控制 | — | — | — | — | — | ✔ |
-| 弹窗/OSD 透明度 | — | — | — | — | — | ✔ |
+| 功能 | 3.2.0 | 3.3.0 | 3.4.0 | 3.5.0 | 3.6.0 |
+|------|:-----:|:-----:|:-----:|:-----:|:-----:|
+| 全局快捷键 | ✔ | ✔ | ✔ | ✔ | ✔ |
+| 色温调节 | — | ✔ | ✔ | ✔ | ✔ |
+| 时间调整（日出日落） | — | — | ✔ | ✔ | ✔ |
+| gamma 自愈（唤醒/热插拔） | — | — | — | ✔ | ✔ |
+| 全屏自动暂停 | — | — | — | ✔ | ✔ |
+| 功能停用（托盘菜单） | — | — | — | ✔ | ✔ |
+| 设置导出/导入 | — | — | — | ✔ | ✔ |
+| 多显示器独立控制 | — | — | — | — | ✔ |
+| 弹窗/OSD 透明度 | — | — | — | — | ✔ |
 
 ## 📸 界面截图
 
