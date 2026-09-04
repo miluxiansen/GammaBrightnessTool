@@ -23,7 +23,7 @@
 - **Config preserved on uninstall** — `%APPDATA%\GammaBrightnessTool` is intentionally kept by both the installer and the green build
 
 - **Tray brightness-levels menu (restored)** — 100% / 75% / 50% / 25% / 10% submenu at the top of the right-click tray menu; preset switches respect the smooth-transition setting and never flash a stale OSD
-- **Built-in diagnostics** — in-app operation log (`%TEMP%\GammaBrightnessTool_ops.log`, auto-rotating) and a `--selftest` automated check suite (9 checks, no process/system side effects)
+- **Built-in diagnostics** — in-app operation log (`%TEMP%\GammaBrightnessTool_ops.log`, auto-rotating) and a `--selftest` automated check suite (9 checks, no process/system side effects); active only in internal/test builds (Debug or `-p:InternalLog=true`), a no-op in production
 
 #### 🐛 Bug Fixes (vs 3.5.0)
 
@@ -62,7 +62,7 @@
 - **卸载保留配置** — 安装版与绿色版卸载均刻意保留 `%APPDATA%\GammaBrightnessTool` 用户配置
 
 - **右键菜单恢复"亮度挡位"** — 菜单顶部新增 100%/75%/50%/25%/10% 挡位子菜单；切换尊重"亮度平滑"开关、不再弹旧值 OSD
-- **内置诊断** — 操作日志（%TEMP%\GammaBrightnessTool_ops.log，自动轮转）与 `--selftest` 自动化自检（9 项，无进程/系统副作用）
+- **内置诊断** — 操作日志（%TEMP%\GammaBrightnessTool_ops.log，自动轮转）与 `--selftest` 自动化自检（9 项，无进程/系统副作用）；**仅内部/测试构建生效**（Debug 或 `-p:InternalLog=true`），正式版为空实现零开销
 
 #### 🐛 3.6.0 修复（相对 3.5.0）
 

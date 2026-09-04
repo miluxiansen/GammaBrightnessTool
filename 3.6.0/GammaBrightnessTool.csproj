@@ -20,6 +20,10 @@
     <PublishSingleFile>true</PublishSingleFile>
     <SelfContained>false</SelfContained>
     <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <!-- 操作日志编译期开关：仅 Debug（源码/测试）或显式 -p:InternalLog=true 的
+         内部测试发布启用 GBT_INTERNAL_LOG；正式版 Release 不含日志实现
+         （接口保留、零资源开销）。参见 OpLog.cs。 -->
+    <DefineConstants Condition="'$(Configuration)'=='Debug' Or '$(InternalLog)'=='true'">$(DefineConstants);GBT_INTERNAL_LOG</DefineConstants>
   </PropertyGroup>
 
   <ItemGroup>

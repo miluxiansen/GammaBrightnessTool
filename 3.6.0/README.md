@@ -65,7 +65,7 @@ dotnet publish -c Release -o publish --self-contained true -p:PublishSingleFile=
 - **Mouse hook**: `WH_MOUSE_LL`, only intercepts wheel events over the icon area; 50ms throttle
 - **Popup anchoring**: `Shell_NotifyIconGetRect` physical coordinates, 200ms polling re-anchor, DPI-change relayout
 - **Thread safety**: gamma updates locked; hook callbacks defer heavy work to the UI thread via `BeginInvoke`
-- **Diagnostics**: in-app operation log (`%TEMP%\GammaBrightnessTool_ops.log`) + `--selftest` automated checks; no crash goes unlogged (`%TEMP%\GammaBrightnessTool_crash.log`)
+- **Diagnostics**: in-app operation log (`%TEMP%\GammaBrightnessTool_ops.log`) + `--selftest` automated checks; active only in internal/test builds (Debug or `-p:InternalLog=true`), a no-op in production; no crash goes unlogged (`%TEMP%\GammaBrightnessTool_crash.log`)
 - **Performance**: ~0% idle CPU, no GDI/handle leaks (validated: theme-cycle GDI delta 0)
 
 ## 📁 File Structure
@@ -173,7 +173,7 @@ dotnet publish -c Release -o publish --self-contained true -p:PublishSingleFile=
 - **鼠标钩子**: `WH_MOUSE_LL`，仅拦截图标区域滚轮；50ms 节流
 - **弹窗锚定**: `Shell_NotifyIconGetRect` 物理坐标 + 200ms 轮询实时锚定，DPI 变化自动重排
 - **线程安全**: Gamma 更新加锁；钩子回调的重活经 `BeginInvoke` 延迟到 UI 线程队列执行
-- **诊断**: 内置操作日志（`%TEMP%\GammaBrightnessTool_ops.log`）+ `--selftest` 自动化自检；崩溃留痕 `%TEMP%\GammaBrightnessTool_crash.log`
+- **诊断**: 内置操作日志（`%TEMP%\GammaBrightnessTool_ops.log`）+ `--selftest` 自动化自检；**仅内部/测试构建生效**（Debug 或 `-p:InternalLog=true`），正式版为空实现零开销；崩溃仍留痕 `%TEMP%\GammaBrightnessTool_crash.log`
 - **性能**: 空闲 CPU ≈ 0%，无 GDI/句柄泄漏（实测主题循环 GDI 增量为 0）
 
 ## 📁 文件结构

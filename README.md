@@ -33,7 +33,7 @@ A Windows screen brightness & color temperature adjustment tool built on .NET 8 
 | Pause in fullscreen | — | — | — | — | ✔ | ✔ |
 | Feature off (tray menu) | — | — | — | — | ✔ | ✔ |
 | Settings export/import | — | — | — | — | ✔ | ✔ |
-| Multi-monitor independent control (per-display enable / freeze, EDID identity, 7th "Monitors" settings page) | — | — | — | — | — | ✔ |
+| Multi-monitor independent control | — | — | — | — | — | ✔ |
 | Popup / OSD opacity | — | — | — | — | — | ✔ |
 
 ## 📸 Screenshots
@@ -99,7 +99,7 @@ MIT License © 2026 GammaBrightnessTool Contributors. See [3.5.0/LICENSE](3.5.0/
 | 全屏自动暂停 | — | — | — | — | ✔ | ✔ |
 | 功能停用（托盘菜单） | — | — | — | — | ✔ | ✔ |
 | 设置导出/导入 | — | — | — | — | ✔ | ✔ |
-| 多显示器独立控制（逐屏启用/冻结、EDID 标识、第 7 页"显示器"设置） | — | — | — | — | — | ✔ |
+| 多显示器独立控制 | — | — | — | — | — | ✔ |
 | 弹窗/OSD 透明度 | — | — | — | — | — | ✔ |
 
 ## 📸 界面截图
