@@ -34,7 +34,7 @@ A Windows screen brightness & color temperature adjustment tool built on .NET 8 
 | Multi-monitor independent control | — | — | — | — | ✔ |
 | Popup / OSD opacity | — | — | — | — | ✔ |
 
-## 📸 Screenshots
+## 📸 Screenshots (3.6.0)
 
 | Settings |
 |----------|
@@ -43,6 +43,10 @@ A Windows screen brightness & color temperature adjustment tool built on .NET 8 
 | Left-click popup — brightness | Left-click popup — color temp | Left-click popup — default |
 |-------------------------------|-------------------------------|----------------------------|
 | ![popup-brightness](screenshots/popup-brightness.png) | ![popup-temperature](screenshots/popup-temperature.png) | ![popup-0814](screenshots/popup-0814.png) |
+
+| Multi-monitor OSD | Multi-monitor left-click window |
+|-------------------|---------------------------------|
+| ![multi-osd](screenshots/多显示器OSD.png) | ![multi-leftclick](screenshots/多显示器左键窗口.png) |
 
 ## 🚀 Quick Start
 
@@ -98,7 +102,7 @@ MIT License © 2026 GammaBrightnessTool Contributors. See [3.5.0/LICENSE](3.5.0/
 | 多显示器独立控制 | — | — | — | — | ✔ |
 | 弹窗/OSD 透明度 | — | — | — | — | ✔ |
 
-## 📸 界面截图
+## 📸 界面截图（3.6.0）
 
 | 设置窗口 |
 |----------|
@@ -107,6 +111,10 @@ MIT License © 2026 GammaBrightnessTool Contributors. See [3.5.0/LICENSE](3.5.0/
 | 左键弹窗 — 亮度 | 左键弹窗 — 色温 | 左键弹窗 — 默认（色温关闭） |
 |-----------------|-----------------|------------------------------|
 | ![popup-brightness](screenshots/popup-brightness.png) | ![popup-temperature](screenshots/popup-temperature.png) | ![popup-0814](screenshots/popup-0814.png) |
+
+| 多显示器 OSD | 多显示器左键窗口 |
+|---------------|------------------|
+| ![multi-osd](screenshots/多显示器OSD.png) | ![multi-leftclick](screenshots/多显示器左键窗口.png) |
 
 ## 🚀 快速开始
 
