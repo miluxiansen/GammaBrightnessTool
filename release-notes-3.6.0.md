@@ -22,6 +22,9 @@
 - **Packaging (final, 2026-09-04)** — the installer ships self-contained **loose files**: the app exe (185 KB) + `.NET 8.0.29 Desktop Runtime` files are laid out in the same folder, nothing is written machine-wide (`PrivilegesRequired=lowest`); Setup ≈ 53 MB, cold start ≈ 110 ms. Installer tasks ("Start with Windows" / desktop icon) are user-chosen, **not** default-checked
 - **Config preserved on uninstall** — `%APPDATA%\GammaBrightnessTool` is intentionally kept by both the installer and the green build
 
+- **Tray brightness-levels menu (restored)** — 100% / 75% / 50% / 25% / 10% submenu at the top of the right-click tray menu; preset switches respect the smooth-transition setting and never flash a stale OSD
+- **Built-in diagnostics** — in-app operation log (`%TEMP%\GammaBrightnessTool_ops.log`, auto-rotating) and a `--selftest` automated check suite (9 checks, no process/system side effects)
+
 #### 🐛 Bug Fixes (vs 3.5.0)
 
 - Fixed popup/OSD slider rows not following display count in independent mode (window height now tracks the row count)
@@ -34,6 +37,12 @@
 - Fixed the app failing to update scaling at runtime — a display-scaling change now restarts the process automatically, preserving the current page and scroll position
 - Fixed fullscreen-pause not taking effect until restart (now active immediately); hot-plugged displays are seeded from the average of enabled displays
 - Fixed a crash when closing the settings window right after a DPI change (font disposal during handle rebuild)
+
+- Settings are saved atomically (temp file + rename) — a crash/power loss mid-write can no longer corrupt `settings.json`
+- Settings window no longer re-subscribes to controller events on every UI rebuild (subscription leak / stale-closure crash)
+- Theme polling moved to the UI thread; tray self-heal no longer deletes the system-wide icon stream (it reset other apps' tray customizations); tray tooltip switched to Unicode with a 127-char truncation guard
+- GDI/handle leaks fixed (rounded-corner regions/paths, animation timers, shared fonts, bitmap stream lifetime); mouse-hook heavy work deferred off the hook callback
+- Green-version uninstall no longer deletes the shared `%APPDATA%` config; switching brightness presets no longer flashes a stale OSD
 
 ---
 
@@ -52,6 +61,9 @@
 - **打包形态（终版，2026-09-04）** — 安装器为**自包含散文件**：应用 exe（185KB）与 `.NET 8.0.29 Desktop Runtime` 全套散文件同目录铺装，不做任何机器级写入（`PrivilegesRequired=lowest`）；安装包 ≈ 53MB，冷启动 ≈ 110ms。安装任务（开机自启/桌面图标）由用户自选，**非默认勾选**
 - **卸载保留配置** — 安装版与绿色版卸载均刻意保留 `%APPDATA%\GammaBrightnessTool` 用户配置
 
+- **右键菜单恢复"亮度挡位"** — 菜单顶部新增 100%/75%/50%/25%/10% 挡位子菜单；切换尊重"亮度平滑"开关、不再弹旧值 OSD
+- **内置诊断** — 操作日志（%TEMP%\GammaBrightnessTool_ops.log，自动轮转）与 `--selftest` 自动化自检（9 项，无进程/系统副作用）
+
 #### 🐛 3.6.0 修复（相对 3.5.0）
 
 - 修复独立模式下弹窗/OSD 滑轨行数不跟随显示器数量（窗口高度现按行数自适应）
@@ -64,24 +76,11 @@
 - 修复运行中无法响应缩放变更——检测到显示缩放变化会自动重启进程并保留当前页与滚动位置
 - 修复"全屏自动暂停"需重启才生效（现即时生效）；热插拔新屏以启用屏平均值播种
 - 修复 DPI 变更后立即关闭设置窗口偶发崩溃（句柄重建期字体释放）
-
-#### 🔒 Final-release hardening (2026-09-04)
-
-- Atomic settings save (temp file + rename) — a crash/power loss mid-write can no longer truncate `settings.json`
-- Settings window no longer re-subscribes to controller events on every rebuild (leak/stale-closure fix)
-- Theme polling moved to the UI thread; tray-cache self-heal no longer deletes the system-wide icon stream; `NOTIFYICONDATA` switched to Unicode with 127-char tooltip truncation
-- GDI/handle leaks fixed (rounded-corner paths/regions, animation timers, shared-font lifecycle, bitmap stream lifetime); global mouse-hook work deferred off the hook callback
-- Green uninstall no longer deletes shared `%APPDATA%` config; tray **brightness levels** submenu restored (no stale OSD on preset switch)
-- Added in-app operation log (`%TEMP%\GammaBrightnessTool_ops.log`) and a `--selftest` automated check suite (9 checks)
-
-#### 🔒 终版加固（2026-09-04）
-
-- 配置原子保存（临时文件+改名），写盘中途崩溃不再损坏 settings.json
-- 设置窗不再每次重建都重复订阅控制器事件（修复累积泄漏与旧闭包）
-- 主题轮询改到 UI 线程；托盘缓存自检不再整体删除系统共享图标流；NOTIFYICONDATA 改 Unicode + tooltip 127 字符截断
-- 修复 GDI/句柄泄漏（圆角 Path/Region、动画 Timer、共享字体生命周期、Bitmap 流存活期）；全局钩子重活移出钩子回调
-- 绿色版卸载不再删除共享 %APPDATA% 配置；右键菜单恢复"亮度挡位"子菜单（切换挡位不再弹旧值 OSD）
-- 内置操作日志（%TEMP%\GammaBrightnessTool_ops.log）与 `--selftest` 自动化自检（9 项）
+- 配置改为原子保存（临时文件+改名），写盘中途崩溃/断电不再损坏 settings.json
+- 设置窗不再每次重建都重复订阅控制器事件（修复订阅累积与旧闭包崩溃）
+- 主题轮询改到 UI 线程；托盘自检不再整体删除系统共享图标流（原会重置其它软件托盘自定义）；托盘提示改 Unicode 并加 127 字符截断
+- 修复 GDI/句柄泄漏（圆角 Path/Region、动画计时器、共享字体、Bitmap 流存活期）；全局钩子重活移出钩子回调
+- 绿色版卸载不再删除共享 %APPDATA% 配置；切换亮度挡位不再弹旧值 OSD
 
 ---
 *Full changelog details and technical notes: see `3.6.0/` source folder.*

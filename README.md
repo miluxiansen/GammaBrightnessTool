@@ -24,18 +24,17 @@ A Windows screen brightness & color temperature adjustment tool built on .NET 8 
 
 | Feature | 3.1.0 | 3.2.0 | 3.3.0 | 3.4.0 | 3.5.0 | 3.6.0 |
 |---------|:-----:|:-----:|:-----:|:-----:|:-----:|:-----:|
-| Settings window | ✔ | ✔ | ✔ | ✔ | ✔ | ? |
-| Theme switching | ✔ | ✔ | ✔ | ✔ | ✔ | ? |
-| Global hotkeys | — | ✔ | ✔ | ✔ | ✔ | ? |
-| Color temperature | — | — | ✔ | ✔ | ✔ | ? |
-| Time-based adjustment | — | — | — | ✔ | ✔ | ? |
-| Gamma self-heal (sleep/hot-plug) | — | — | — | — | ✔ | ? |
-| Pause in fullscreen | — | — | — | — | ✔ | ? |
-| Feature off (tray menu) | — | — | — | — | ✔ | ? |
-| Settings export/import | — | — | — | — | ✔ | ? |
-| Per-display enable / freeze (EDID) | — | — | — | — | — | ? |
-| Display settings page (7th) | — | — | — | — | — | ? |
-| Popup / OSD opacity | — | — | — | — | — | ? |
+| Settings window | ✔ | ✔ | ✔ | ✔ | ✔ | ✔ |
+| Theme switching | ✔ | ✔ | ✔ | ✔ | ✔ | ✔ |
+| Global hotkeys | — | ✔ | ✔ | ✔ | ✔ | ✔ |
+| Color temperature | — | — | ✔ | ✔ | ✔ | ✔ |
+| Time-based adjustment | — | — | — | ✔ | ✔ | ✔ |
+| Gamma self-heal (sleep/hot-plug) | — | — | — | — | ✔ | ✔ |
+| Pause in fullscreen | — | — | — | — | ✔ | ✔ |
+| Feature off (tray menu) | — | — | — | — | ✔ | ✔ |
+| Settings export/import | — | — | — | — | ✔ | ✔ |
+| Multi-monitor independent control (per-display enable / freeze, EDID identity, 7th "Monitors" settings page) | — | — | — | — | — | ✔ |
+| Popup / OSD opacity | — | — | — | — | — | ✔ |
 
 ## 📸 Screenshots
 
@@ -91,18 +90,17 @@ MIT License © 2026 GammaBrightnessTool Contributors. See [3.5.0/LICENSE](3.5.0/
 
 | 功能 | 3.1.0 | 3.2.0 | 3.3.0 | 3.4.0 | 3.5.0 | 3.6.0 |
 |------|:-----:|:-----:|:-----:|:-----:|:-----:|:-----:|
-| 设置窗口 | ✔ | ✔ | ✔ | ✔ | ✔ | ? |
-| 主题切换 | ✔ | ✔ | ✔ | ✔ | ✔ | ? |
-| 全局快捷键 | — | ✔ | ✔ | ✔ | ✔ | ? |
-| 色温调节 | — | — | ✔ | ✔ | ✔ | ? |
-| 时间调整（日出日落） | — | — | — | ✔ | ✔ | ? |
-| gamma 自愈（唤醒/热插拔） | — | — | — | — | ✔ | ? |
-| 全屏自动暂停 | — | — | — | — | ✔ | ? |
-| 功能停用（托盘菜单） | — | — | — | — | ✔ | ? |
-| 设置导出/导入 | — | — | — | — | ✔ | ? |
-| 逐屏启用/冻结（EDID） | — | — | — | — | — | ? |
-| 显示器设置页（第 7 页） | — | — | — | — | — | ? |
-| 弹窗/OSD 透明度 | — | — | — | — | — | ? |
+| 设置窗口 | ✔ | ✔ | ✔ | ✔ | ✔ | ✔ |
+| 主题切换 | ✔ | ✔ | ✔ | ✔ | ✔ | ✔ |
+| 全局快捷键 | — | ✔ | ✔ | ✔ | ✔ | ✔ |
+| 色温调节 | — | — | ✔ | ✔ | ✔ | ✔ |
+| 时间调整（日出日落） | — | — | — | ✔ | ✔ | ✔ |
+| gamma 自愈（唤醒/热插拔） | — | — | — | — | ✔ | ✔ |
+| 全屏自动暂停 | — | — | — | — | ✔ | ✔ |
+| 功能停用（托盘菜单） | — | — | — | — | ✔ | ✔ |
+| 设置导出/导入 | — | — | — | — | ✔ | ✔ |
+| 多显示器独立控制（逐屏启用/冻结、EDID 标识、第 7 页"显示器"设置） | — | — | — | — | — | ✔ |
+| 弹窗/OSD 透明度 | — | — | — | — | — | ✔ |
 
 ## 📸 界面截图
 
