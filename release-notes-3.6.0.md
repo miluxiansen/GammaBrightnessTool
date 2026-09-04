@@ -19,7 +19,7 @@
 - **Neutral-point dwell on the temperature slider** — dragging past the default 6600K briefly dwells with a blue highlight (140 ms) then follows smoothly; releasing exactly on 6600K keeps 6600K. No sticking, no step jumps
 - **Popup / OSD opacity sliders** — independent 40–100% opacity for the left-click popup and the wheel OSD (General settings), applied live and persisted; the popup draws its first frame opaque to avoid a white/black flash
 - **Smoother dragging** — slider drags are coalesced on a 24 ms frame timer (gamma write + tooltip + save + events merged), so fast large drags no longer stutter
-- **Packaging (final, 2026-09-04)** — the installer ships self-contained **loose files**: the app exe (185 KB) + `.NET 8.0.29 Desktop Runtime` files are laid out in the same folder, nothing is written machine-wide (`PrivilegesRequired=lowest`); Setup ≈ 53 MB, cold start ≈ 110 ms. Installer tasks ("Start with Windows" / desktop icon) are user-chosen, **not** default-checked
+- **Packaging (final, 2026-09-04)** — the installer ships self-contained **loose files**: the app exe (185 KB) + `.NET 8.0.29 Desktop Runtime` files are laid out in the same folder, nothing is written machine-wide (`PrivilegesRequired=lowest`); Setup ≈ 53 MB, cold start ≈ 110 ms. Installer tasks "Start with Windows" and "Create desktop icon" are **selected by default** (`UsePreviousTasks=no`, so upgrades always present them checked)
 - **Config preserved on uninstall** — `%APPDATA%\GammaBrightnessTool` is intentionally kept by both the installer and the green build
 
 - **Tray brightness-levels menu (restored)** — 100% / 75% / 50% / 25% / 10% submenu at the top of the right-click tray menu; preset switches respect the smooth-transition setting and never flash a stale OSD
@@ -58,7 +58,7 @@
 - **色温滑轨 6600K 中性点轻顿** — 拖过默认 6600K 时短暂停顿并蓝色高亮（140ms），随后平滑跟手；恰好松手在 6600K 则保持 6600K，不粘手、不跳档
 - **弹窗 / OSD 透明度滑轨** — 通用设置新增左键弹窗与 OSD 浮窗两条独立透明度滑轨（40–100%，默认 90/70），实时生效并持久化；弹窗首帧先不透明绘制避免白/黑闪
 - **拖动更跟手** — 滑轨拖动按 24ms 合帧（gamma 写屏 + tooltip + 保存 + 事件合并），快速大幅拖动不再卡顿
-- **打包形态（终版，2026-09-04）** — 安装器为**自包含散文件**：应用 exe（185KB）与 `.NET 8.0.29 Desktop Runtime` 全套散文件同目录铺装，不做任何机器级写入（`PrivilegesRequired=lowest`）；安装包 ≈ 53MB，冷启动 ≈ 110ms。安装任务（开机自启/桌面图标）由用户自选，**非默认勾选**
+- **打包形态（终版，2026-09-04）** — 安装器为**自包含散文件**：应用 exe（185KB）与 `.NET 8.0.29 Desktop Runtime` 全套散文件同目录铺装，不做任何机器级写入（`PrivilegesRequired=lowest`）；安装包 ≈ 53MB，冷启动 ≈ 110ms。安装任务（开机自启/桌面图标）**默认勾选**（`UsePreviousTasks=no`，升级安装也总是回到默认勾选）
 - **卸载保留配置** — 安装版与绿色版卸载均刻意保留 `%APPDATA%\GammaBrightnessTool` 用户配置
 
 - **右键菜单恢复"亮度挡位"** — 菜单顶部新增 100%/75%/50%/25%/10% 挡位子菜单；切换尊重"亮度平滑"开关、不再弹旧值 OSD
