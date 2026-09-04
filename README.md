@@ -62,7 +62,7 @@ If the app icon is not visible in the system tray:
 
 ## 📜 License
 
-MIT License © 2026 GammaBrightnessTool Contributors. See [3.5.0/LICENSE](3.5.0/LICENSE).
+MIT License © 2026 GammaBrightnessTool Contributors. See [3.6.0/LICENSE](3.6.0/LICENSE).
 
 ---
 
@@ -130,4 +130,4 @@ MIT License © 2026 GammaBrightnessTool Contributors. See [3.5.0/LICENSE](3.5.0/
 
 ## 📜 开源协议
 
-MIT License © 2026 GammaBrightnessTool Contributors，详见 [3.5.0/LICENSE](3.5.0/LICENSE)。
+MIT License © 2026 GammaBrightnessTool Contributors，详见 [3.6.0/LICENSE](3.6.0/LICENSE)。
