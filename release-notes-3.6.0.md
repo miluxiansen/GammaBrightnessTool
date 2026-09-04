@@ -43,6 +43,8 @@
 - Theme polling moved to the UI thread; tray self-heal no longer deletes the system-wide icon stream (it reset other apps' tray customizations); tray tooltip switched to Unicode with a 127-char truncation guard
 - GDI/handle leaks fixed (rounded-corner regions/paths, animation timers, shared fonts, bitmap stream lifetime); mouse-hook heavy work deferred off the hook callback
 - Green-version uninstall no longer deletes the shared `%APPDATA%` config; switching brightness presets no longer flashes a stale OSD
+- Fixed a crash when plugging/unplugging a display while independent mode was on (auto-restart raced the old process's tray GUID slot — the tray `NIM_DELETE` now uses `NIF_GUID`; startup stays `NIM_ADD`-first with retry and only deletes as a last resort)
+- Monitor-rename input now rolls back to the last committed name when focus is lost without confirming (same behavior as the color-range fields)
 
 ---
 
@@ -81,6 +83,8 @@
 - 主题轮询改到 UI 线程；托盘自检不再整体删除系统共享图标流（原会重置其它软件托盘自定义）；托盘提示改 Unicode 并加 127 字符截断
 - 修复 GDI/句柄泄漏（圆角 Path/Region、动画计时器、共享字体、Bitmap 流存活期）；全局钩子重活移出钩子回调
 - 绿色版卸载不再删除共享 %APPDATA% 配置；切换亮度挡位不再弹旧值 OSD
+- 修复独立控制开启时插拔显示器导致的崩溃（自动重启撞上旧进程托盘 GUID 槽位——托盘 NIM_DELETE 现带 NIF_GUID；启动保持纯 ADD+重试，仅最后手段才删除）
+- 显示器重命名输入框：未按确认就失焦时自动还原为上次提交的名字（与色温范围输入框行为一致）
 
 ---
 *Full changelog details and technical notes: see `3.6.0/` source folder.*

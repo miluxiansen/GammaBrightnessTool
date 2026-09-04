@@ -3492,6 +3492,16 @@ public sealed class SettingsForm : Form
             editBox.ApplyTheme(InputBg, TextMain);
             editBox.SetParentBackground(BgInner);
 
+            // 失焦回滚：未按确认（Enter/保存钮）就点到别处 → 还原为"最后一次
+            // 提交的名字"（与色温范围输入框同语义）。提交成功后基准同步更新。
+            string committedName = currentName;
+            bool renameArmed = false;
+            void CommitRename()
+            {
+                controller?.SetDisplayName(id, editBox.Text);
+                committedName = editBox.Text;
+            }
+
             var saveBtn = new RoundedButton
             {
                 Text = Localization.Get("MonitorsRenameBtn"),
@@ -3503,10 +3513,24 @@ public sealed class SettingsForm : Form
                 ThemeManager.IsDark ? Color.FromArgb(51, 51, 55) : Color.FromArgb(229, 241, 251),
                 ThemeManager.IsDark ? Color.FromArgb(57, 57, 66) : Color.FromArgb(192, 208, 228));
 
+            // 保存钮 MouseDown 先置"提交中"标志：TextBox 的 Leave 在焦点转移到
+            // 按钮时触发、早于 Click，若不加标志，失焦回滚会把刚保存的名字又
+            // 还原成旧值（与色温范围输入框的 rangeCommitArmed 同手法）。
+            saveBtn.MouseDown += (_, _) => renameArmed = true;
             saveBtn.Click += (_, _) =>
             {
-                controller?.SetDisplayName(id, editBox.Text);
+                renameArmed = false;
+                CommitRename();
             };
+            editBox.KeyDown += (_, e) =>
+            {
+                if (e.KeyCode == Keys.Enter) { CommitRename(); e.SuppressKeyPress = true; }
+            };
+            editBox.Leave += (_, _) => BeginInvoke((Action)(() =>
+            {
+                if (!renameArmed) editBox.Text = committedName;
+                renameArmed = false;
+            }));
 
             var rightPanel = new Panel
             {

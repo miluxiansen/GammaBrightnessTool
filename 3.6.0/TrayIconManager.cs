@@ -198,14 +198,10 @@ public sealed class TrayIconManager : IDisposable
 
     private void CreateTrayIcon()
     {
-        var oldNid = new NOTIFYICONDATA
-        {
-            cbSize = (uint)Marshal.SizeOf<NOTIFYICONDATA>(),
-            hWnd = WindowHandle,
-            uID = ICON_ID
-        };
-        Shell_NotifyIcon(NIM_DELETE, ref oldNid);
-
+        // 正常启动：直接 NIM_ADD（同 GUID 复用 NotifyIconSettings 条目，"隐藏
+        // 图标菜单"开关项由 Windows 在首次 NIM_ADD+GUID 时建立并持久化，程序
+        // 从不写删该注册表区，NIM_DELETE 也只移除实时图标本身）。因此正常路径
+        // 零 DELETE，与历史验证过"开关项正常出现"的版本行为一致。
         _appIcon = IconGenerator.CreateMultiSizeTrayIcon();
         _iconHandle = _appIcon?.Handle ?? SystemIcons.Application.Handle;
 
@@ -223,7 +219,26 @@ public sealed class TrayIconManager : IDisposable
 
         if (!Shell_NotifyIcon(NIM_ADD, ref nid))
         {
-            throw new InvalidOperationException("Failed to create tray icon");
+            // 首试失败：多半是跨进程自动重启时旧实例的 GUID 槽位尚未释放。
+            // 先等旧进程收尾再重试（等几帧即可，纯重试不动任何东西）；
+            Thread.Sleep(300);
+            if (!Shell_NotifyIcon(NIM_ADD, ref nid))
+            {
+                // 仍失败才按 GUID 精确注销残留槽位（hWnd+uID 在 GUID 注册下
+                // 匹配不到），随后立即重建。
+                var delNid = new NOTIFYICONDATA
+                {
+                    cbSize = (uint)Marshal.SizeOf<NOTIFYICONDATA>(),
+                    uFlags = NIF_GUID,
+                    guidItem = IconGuid
+                };
+                Shell_NotifyIcon(NIM_DELETE, ref delNid);
+                Thread.Sleep(50);
+                if (!Shell_NotifyIcon(NIM_ADD, ref nid))
+                {
+                    throw new InvalidOperationException("Failed to create tray icon");
+                }
+            }
         }
 
         nid.uVersion = NOTIFYICON_VERSION_4;
@@ -570,8 +585,11 @@ public sealed class TrayIconManager : IDisposable
         var nid = new NOTIFYICONDATA
         {
             cbSize = (uint)Marshal.SizeOf<NOTIFYICONDATA>(),
-            hWnd = WindowHandle,
-            uID = ICON_ID,
+            // 必须以 NIF_GUID 方式注销（hWnd+uID 在 GUID 注册下匹配不到）：
+            // 否则跨进程自动重启时旧槽位残留 → 新进程 NIM_ADD 撞重复 GUID 崩溃。
+            // 正常退出删掉实时图标即可；下次启动的 NIM_ADD 会立刻重建开关项
+            // （"缺失即生成、免重启 explorer"的已验证机制）。
+            uFlags = NIF_GUID,
             guidItem = IconGuid
         };
         Shell_NotifyIcon(NIM_DELETE, ref nid);
