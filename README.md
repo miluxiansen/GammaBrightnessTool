@@ -12,7 +12,7 @@ A Windows screen brightness & color temperature adjustment tool built on .NET 8 
 
 | Version | Release Notes | Source | Installer | Portable |
 |---------|---------------|--------|-----------|----------|
-| **3.7.0 (Latest)** | Per-display app whitelist & pause | [3.7.0/](3.7.0/README.md) | [Download](https://gitee.com/mlxs008/gamma-brightness-tool/releases/download/v3.7.0/GammaBrightnessTool_Setup_v3.7.0.exe) | [Download](https://gitee.com/mlxs008/gamma-brightness-tool/releases/download/v3.7.0/GammaBrightnessTool_Portable_v3.7.0.zip) |
+| **3.7.0 (Latest)** | Per-display app whitelist & pause | [3.7.0/](3.7.0/README.md) | [Download](https://gitee.com/mlxs008/gamma-brightness-tool/releases/download/v3.7.0/GammaBrightnessTool_Setup_v3.7.0.exe) | [Download](https://gitee.com/mlxs008/gamma-brightness-tool/releases/download/v3.7.0/GammaBrightnessTool-Portable-v3.7.0.zip) |
 | 3.6.0 | Multi-monitor independent control | [3.6.0/](3.6.0/README.md) | [Download](https://gitee.com/mlxs008/gamma-brightness-tool/releases/download/v3.6.0/GammaBrightnessTool_Setup.exe) | [Download](https://gitee.com/mlxs008/gamma-brightness-tool/releases/download/v3.6.0/GammaBrightnessTool-Portable-v3.6.0.zip) |
 | 3.5.0 | Gamma self-heal, fullscreen pause & feature off | [3.5.0/](3.5.0/README.md) | [Download](https://gitee.com/mlxs008/gamma-brightness-tool/releases/download/v3.5.0/GammaBrightnessTool_Setup.exe) | [Download](https://gitee.com/mlxs008/gamma-brightness-tool/releases/download/v3.5.0/GammaBrightnessTool-Portable-v3.5.0.zip) |
 | 3.4.0 | Time-based auto adjustment & smooth transitions | [3.4.0/](early-versions/3.4.0/README.md) | [Download](https://gitee.com/mlxs008/gamma-brightness-tool/releases/download/v3.4.0/GammaBrightnessTool_Setup.exe) | [Download](https://gitee.com/mlxs008/gamma-brightness-tool/releases/download/v3.4.0/GammaBrightnessTool-Portable-v3.4.0.zip) |
@@ -80,7 +80,7 @@ MIT License © 2026 GammaBrightnessTool Contributors. See [LICENSE](LICENSE).
 
 | 版本 | 发布说明 | 源码 | 安装包 | 便携版 |
 |------|----------|------|--------|--------|
-| **3.7.0（最新）** | 应用白名单（逐屏暂停） | [3.7.0/](3.7.0/README.md) | [下载](https://gitee.com/mlxs008/gamma-brightness-tool/releases/download/v3.7.0/GammaBrightnessTool_Setup_v3.7.0.exe) | [下载](https://gitee.com/mlxs008/gamma-brightness-tool/releases/download/v3.7.0/GammaBrightnessTool_Portable_v3.7.0.zip) |
+| **3.7.0（最新）** | 应用白名单（逐屏暂停） | [3.7.0/](3.7.0/README.md) | [下载](https://gitee.com/mlxs008/gamma-brightness-tool/releases/download/v3.7.0/GammaBrightnessTool_Setup_v3.7.0.exe) | [下载](https://gitee.com/mlxs008/gamma-brightness-tool/releases/download/v3.7.0/GammaBrightnessTool-Portable-v3.7.0.zip) |
 | 3.6.0 | 多显示器独立控制 | [3.6.0/](3.6.0/README.md) | [下载](https://gitee.com/mlxs008/gamma-brightness-tool/releases/download/v3.6.0/GammaBrightnessTool_Setup.exe) | [下载](https://gitee.com/mlxs008/gamma-brightness-tool/releases/download/v3.6.0/GammaBrightnessTool-Portable-v3.6.0.zip) |
 | 3.5.0 | gamma 自愈 + 全屏暂停 + 功能停用 | [3.5.0/](3.5.0/README.md) | [下载](https://gitee.com/mlxs008/gamma-brightness-tool/releases/download/v3.5.0/GammaBrightnessTool_Setup.exe) | [下载](https://gitee.com/mlxs008/gamma-brightness-tool/releases/download/v3.5.0/GammaBrightnessTool-Portable-v3.5.0.zip) |
 | 3.4.0 | 时间调整 + 平滑过渡 | [3.4.0/](early-versions/3.4.0/README.md) | [下载](https://gitee.com/mlxs008/gamma-brightness-tool/releases/download/v3.4.0/GammaBrightnessTool_Setup.exe) | [下载](https://gitee.com/mlxs008/gamma-brightness-tool/releases/download/v3.4.0/GammaBrightnessTool-Portable-v3.4.0.zip) |
