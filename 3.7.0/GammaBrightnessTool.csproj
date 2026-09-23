@@ -1,0 +1,90 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <UseWindowsForms>true</UseWindowsForms>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <ApplicationIcon>Resources\APP.ico</ApplicationIcon>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <!-- WFAC010: the WinForms analyzer incorrectly warns that manifest DPI
+         settings should be removed.  In fact the manifest declaration
+         (dpiAwareness=PerMonitorV2,system) is correct and has been
+         validated by the user — suppressing the false alarm here. -->
+    <NoWarn>$(NoWarn);WFAC010</NoWarn>
+    <Version>3.7.0</Version>
+    <AssemblyVersion>3.7.0.0</AssemblyVersion>
+    <FileVersion>3.7.0.0</FileVersion>
+    <PublishSingleFile>true</PublishSingleFile>
+    <SelfContained>false</SelfContained>
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <!-- 操作日志编译期开关：仅 Debug（源码/测试）或显式 -p:InternalLog=true 的
+         内部测试发布启用 GBT_INTERNAL_LOG；正式版 Release 不含日志实现
+         （接口保留、零资源开销）。参见 OpLog.cs。 -->
+    <DefineConstants Condition="'$(Configuration)'=='Debug' Or '$(InternalLog)'=='true'">$(DefineConstants);GBT_INTERNAL_LOG</DefineConstants>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="System.Text.Json" Version="8.0.5" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\APP.ico" />
+    <!-- 刷新图标（2026-09-15）：由 _devtools\make_refresh_icons.py 从同目录的
+         refresh black.png / refresh white.png 转成 16→256 多尺寸 ico（笔画已用 alpha 腐蚀细 25%）。
+         深浅主题各一张：深色主题用白、浅色主题用黑。 -->
+    <EmbeddedResource Include="Resources\refresh-icons\refresh-black.ico" />
+    <EmbeddedResource Include="Resources\refresh-icons\refresh-white.ico" />
+    <!-- Icon art: embedded so the single-file green build keeps the
+         icons without requiring the PNGs beside the exe. Loaded via
+         Assembly.GetManifestResourceStream at runtime. -->
+    <EmbeddedResource Include="Resources\color temperature.png" />
+    <EmbeddedResource Include="Resources\color temperature black.png" />
+    <EmbeddedResource Include="Resources\color temperature white.png" />
+    <EmbeddedResource Include="Resources\tray-sun-black.png" />
+    <EmbeddedResource Include="Resources\tray-sun-white.png" />
+    <!-- Tray icon per-size pre-rendered PNGs (dark + white sets). -->
+    <EmbeddedResource Include="Resources\tray-icons\tray-sun-black-16.png" />
+    <EmbeddedResource Include="Resources\tray-icons\tray-sun-black-24.png" />
+    <EmbeddedResource Include="Resources\tray-icons\tray-sun-black-32.png" />
+    <EmbeddedResource Include="Resources\tray-icons\tray-sun-black-48.png" />
+    <EmbeddedResource Include="Resources\tray-icons\tray-sun-black-64.png" />
+    <EmbeddedResource Include="Resources\tray-icons\tray-sun-black-128.png" />
+    <EmbeddedResource Include="Resources\tray-icons\tray-sun-black-256.png" />
+    <EmbeddedResource Include="Resources\tray-icons\tray-sun-white-16.png" />
+    <EmbeddedResource Include="Resources\tray-icons\tray-sun-white-24.png" />
+    <EmbeddedResource Include="Resources\tray-icons\tray-sun-white-32.png" />
+    <EmbeddedResource Include="Resources\tray-icons\tray-sun-white-48.png" />
+    <EmbeddedResource Include="Resources\tray-icons\tray-sun-white-64.png" />
+    <EmbeddedResource Include="Resources\tray-icons\tray-sun-white-128.png" />
+    <EmbeddedResource Include="Resources\tray-icons\tray-sun-white-256.png" />
+    <!-- Color-temperature popup icon series: gradient ring (final design),
+         black / white / color sets, per-size pre-rendered. Color set used
+         now; the monochrome sets stay embedded for quick switching. -->
+    <EmbeddedResource Include="Resources\colortemp-icons-final\colortemp-ring-black-*.png" />
+    <EmbeddedResource Include="Resources\colortemp-icons-final\colortemp-ring-white-*.png" />
+    <EmbeddedResource Include="Resources\colortemp-icons-final\colortemp-ring-color-*.png" />
+    <!-- Gear (settings) icon: black/white per-size pre-rendered sets. -->
+    <EmbeddedResource Include="Resources\gear-icons-original\gear-black-*.png" />
+    <EmbeddedResource Include="Resources\gear-icons-original\gear-white-*.png" />
+    <!-- Pin (always-on-top) icons: black/white x pinned/unpinned (user-supplied). -->
+    <EmbeddedResource Include="Resources\图钉图标\*.png" />
+
+  </ItemGroup>
+  <!-- _devtools 为开发期探针工具（独立项目），不参与本目录编译；
+       GitHub-Release 仅为发布用源码副本，不参与本目录编译 -->
+  <ItemGroup>
+    <Compile Remove="_devtools\**" />
+    <Compile Remove="_devtools - 副本\**" />
+    <EmbeddedResource Remove="_devtools\**" />
+    <EmbeddedResource Remove="_devtools - 副本\**" />
+    <None Remove="_devtools\**" />
+    <None Remove="_devtools - 副本\**" />
+    <Compile Remove="GitHub-Release*\**" />
+    <EmbeddedResource Remove="GitHub-Release*\**" />
+    <None Remove="GitHub-Release*\**" />
+  </ItemGroup>
+
+</Project>
