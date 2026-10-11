@@ -78,17 +78,25 @@ MIT License © 2026 GammaBrightnessTool Contributors. See [LICENSE](LICENSE).
 
 ## 📦 版本历史
 
-| 版本 | 发布说明 | 源码 | 安装包 | 便携版 |
-|------|----------|------|--------|--------|
-| **3.7.1（最新）** | 对 3.7.0 的修复与调整（详见 [v3.7.1 发布页](https://github.com/miluxiansen/GammaBrightnessTool/releases/tag/v3.7.1)） | [3.7.1/](3.7.1/README.md) | [下载](https://github.com/miluxiansen/GammaBrightnessTool/releases/download/v3.7.1/GammaBrightnessTool_Setup_v3.7.1.exe) | [下载](https://github.com/miluxiansen/GammaBrightnessTool/releases/download/v3.7.1/GammaBrightnessTool-Portable-v3.7.1.zip) |
-| 3.7.0 | 应用白名单（逐屏暂停） | [3.7.0/](3.7.0/README.md) | [下载](https://github.com/miluxiansen/GammaBrightnessTool/releases/download/v3.7.0/GammaBrightnessTool_Setup_v3.7.0.exe) | [下载](https://github.com/miluxiansen/GammaBrightnessTool/releases/download/v3.7.0/GammaBrightnessTool_Portable_v3.7.0.zip) |
-| 3.6.0 | 多显示器独立控制 | [3.6.0/](3.6.0/README.md) | [下载](https://github.com/miluxiansen/GammaBrightnessTool/releases/download/v3.6.0/GammaBrightnessTool_Setup.exe) | [下载](https://github.com/miluxiansen/GammaBrightnessTool/releases/download/v3.6.0/GammaBrightnessTool-Portable-v3.6.0.zip) |
-| 3.5.0 | gamma 自愈 + 全屏暂停 + 功能停用 | [3.5.0/](3.5.0/README.md) | [下载](https://github.com/miluxiansen/GammaBrightnessTool/releases/download/v3.5.0/GammaBrightnessTool_Setup.exe) | [下载](https://github.com/miluxiansen/GammaBrightnessTool/releases/download/v3.5.0/GammaBrightnessTool-Portable-v3.5.0.zip) |
-| 3.4.0 | 时间调整 + 平滑过渡 | [3.4.0/](early-versions/3.4.0/README.md) | [下载](https://github.com/miluxiansen/GammaBrightnessTool/releases/download/v3.4.0/GammaBrightnessTool_Setup.exe) | [下载](https://github.com/miluxiansen/GammaBrightnessTool/releases/download/v3.4.0/GammaBrightnessTool-Portable-v3.4.0.zip) |
-| 3.3.0 | 色温调节 | [3.3.0/](early-versions/3.3.0/README.md) | [下载](https://github.com/miluxiansen/GammaBrightnessTool/releases/download/v3.3.0/GammaBrightnessTool_Setup.exe) | [下载](https://github.com/miluxiansen/GammaBrightnessTool/releases/download/v3.3.0/GammaBrightnessTool-Portable-v3.3.0.zip) |
-| 3.2.0 | 全局快捷键 | [3.2.0/](early-versions/3.2.0/README.md) | [下载](https://github.com/miluxiansen/GammaBrightnessTool/releases/download/v3.2.0/GammaBrightnessTool_Setup.exe) | [下载](https://github.com/miluxiansen/GammaBrightnessTool/releases/download/v3.2.0/GammaBrightnessTool-Portable-v3.2.0.zip) |
-| 3.1.0 | 添加基础设置窗口 + 深色主题 | — | — | — |
-| 3.0.0 | 亮度调节的基础可用版本 | [3.0.0/](early-versions/3.0.0/README.md) | [下载](https://github.com/miluxiansen/GammaBrightnessTool/releases/download/v3.0.0/GammaBrightnessTool_Setup_v3.0.0.exe) | [下载](https://github.com/miluxiansen/GammaBrightnessTool/releases/download/v3.0.0/GammaBrightnessTool-Portable-v3.0.0.zip) |
+蓝奏云（国内备用镜像）提取码**各版本统一为 1234**，点下方代码块右上角的复制按钮即可复制，一次复制、所有版本通用：
+
+```
+1234
+```
+
+> 若蓝奏云链接打不开，把域名尾字母换成 `lanzoui` / `lanzoux` / `lanzoup` 再试，后面的文件 ID 不变。
+
+| 版本 | 发布说明 | 源码 | 安装包 | 便携版 | 蓝奏云 |
+|------|----------|------|--------|--------|--------|
+| **3.7.1（最新）** | 对 3.7.0 的修复与调整（详见 [v3.7.1 发布页](https://github.com/miluxiansen/GammaBrightnessTool/releases/tag/v3.7.1)） | [3.7.1/](3.7.1/README.md) | [下载](https://github.com/miluxiansen/GammaBrightnessTool/releases/download/v3.7.1/GammaBrightnessTool_Setup_v3.7.1.exe) | [下载](https://github.com/miluxiansen/GammaBrightnessTool/releases/download/v3.7.1/GammaBrightnessTool-Portable-v3.7.1.zip) | [下载](https://miluxiansen.lanzout.com/b01gidl0ub) · 码 `1234` |
+| 3.7.0 | 应用白名单（逐屏暂停） | [3.7.0/](3.7.0/README.md) | [下载](https://github.com/miluxiansen/GammaBrightnessTool/releases/download/v3.7.0/GammaBrightnessTool_Setup_v3.7.0.exe) | [下载](https://github.com/miluxiansen/GammaBrightnessTool/releases/download/v3.7.0/GammaBrightnessTool_Portable_v3.7.0.zip) | [下载](https://miluxiansen.lanzout.com/b01gidl0vc) · 码 `1234` |
+| 3.6.0 | 多显示器独立控制 | [3.6.0/](3.6.0/README.md) | [下载](https://github.com/miluxiansen/GammaBrightnessTool/releases/download/v3.6.0/GammaBrightnessTool_Setup.exe) | [下载](https://github.com/miluxiansen/GammaBrightnessTool/releases/download/v3.6.0/GammaBrightnessTool-Portable-v3.6.0.zip) | [下载](https://miluxiansen.lanzout.com/b01gidl0xe) · 码 `1234` |
+| 3.5.0 | gamma 自愈 + 全屏暂停 + 功能停用 | [3.5.0/](3.5.0/README.md) | [下载](https://github.com/miluxiansen/GammaBrightnessTool/releases/download/v3.5.0/GammaBrightnessTool_Setup.exe) | [下载](https://github.com/miluxiansen/GammaBrightnessTool/releases/download/v3.5.0/GammaBrightnessTool-Portable-v3.5.0.zip) | [下载](https://miluxiansen.lanzout.com/b01gidl0yf) · 码 `1234` |
+| 3.4.0 | 时间调整 + 平滑过渡 | [3.4.0/](early-versions/3.4.0/README.md) | [下载](https://github.com/miluxiansen/GammaBrightnessTool/releases/download/v3.4.0/GammaBrightnessTool_Setup.exe) | [下载](https://github.com/miluxiansen/GammaBrightnessTool/releases/download/v3.4.0/GammaBrightnessTool-Portable-v3.4.0.zip) | [下载](https://miluxiansen.lanzout.com/b01gidl0zg) · 码 `1234` |
+| 3.3.0 | 色温调节 | [3.3.0/](early-versions/3.3.0/README.md) | [下载](https://github.com/miluxiansen/GammaBrightnessTool/releases/download/v3.3.0/GammaBrightnessTool_Setup.exe) | [下载](https://github.com/miluxiansen/GammaBrightnessTool/releases/download/v3.3.0/GammaBrightnessTool-Portable-v3.3.0.zip) | [下载](https://miluxiansen.lanzout.com/b01gidl10h) · 码 `1234` |
+| 3.2.0 | 全局快捷键 | [3.2.0/](early-versions/3.2.0/README.md) | [下载](https://github.com/miluxiansen/GammaBrightnessTool/releases/download/v3.2.0/GammaBrightnessTool_Setup.exe) | [下载](https://github.com/miluxiansen/GammaBrightnessTool/releases/download/v3.2.0/GammaBrightnessTool-Portable-v3.2.0.zip) | [下载](https://miluxiansen.lanzout.com/b01gidl13a) · 码 `1234` |
+| 3.1.0 | 添加基础设置窗口 + 深色主题 | — | — | — | — |
+| 3.0.0 | 亮度调节的基础可用版本 | [3.0.0/](early-versions/3.0.0/README.md) | [下载](https://github.com/miluxiansen/GammaBrightnessTool/releases/download/v3.0.0/GammaBrightnessTool_Setup_v3.0.0.exe) | [下载](https://github.com/miluxiansen/GammaBrightnessTool/releases/download/v3.0.0/GammaBrightnessTool-Portable-v3.0.0.zip) | [下载](https://miluxiansen.lanzout.com/b01gidl14b) · 码 `1234` |
 
 ### ✨ 功能演进
 
